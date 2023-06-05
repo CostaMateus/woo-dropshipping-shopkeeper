@@ -549,7 +549,7 @@ class Dropshipping_Shopkeeper
 	public static function extra_profile_fields( $user )
 	{
 		if ( in_array( "supplier", $user->roles ) )
-			require_once( dirname( self::FILE ) . "/templates/admin/shopkeeper-profile.php" );
+			require_once( dirname( self::FILE ) . "/templates/admin/supplier-profile.php" );
 	}
 
 	/**
