@@ -341,8 +341,9 @@ class Dropshipping_Shopkeeper
 	 */
 	public static function remove_users_meta()
 	{
-		delete_metadata( "user", 0, "_supplier_url",    "", true );
-		delete_metadata( "user", 0, "_supplier_secret", "", true );
+		delete_metadata( "user", 0, "_dsm_url",      "", true );
+		delete_metadata( "user", 0, "_dsm_secret",   "", true );
+		delete_metadata( "user", 0, "_dsm_secret_s", "", true );
 	}
 
     /**
@@ -356,15 +357,15 @@ class Dropshipping_Shopkeeper
 		$suffix   = defined( "SCRIPT_DEBUG" ) && SCRIPT_DEBUG ? "" : ".min";
 		$css_path = "assets/css/style{$suffix}.css";
 		$css_ver  = date( "ymdHis", filemtime( plugin_dir_path( self::FILE ) . $css_path ) );
-		wp_enqueue_style( self::DOMAIN . "_css_js", plugins_url( $css_path, self::FILE ), false, $css_ver, "all" );
+		wp_enqueue_style( "woo_dsm_css_js", plugins_url( $css_path, self::FILE ), false, $css_ver, "all" );
 
 		$js_path  = "assets/js/script{$suffix}.js";
 		$js_ver   = date( "ymdHis", filemtime( plugin_dir_path( self::FILE ) . $js_path ) );
-		wp_enqueue_script( self::DOMAIN . "_css_js", plugins_url( $js_path, self::FILE ), [ "json2", "jquery" ], $js_ver, true );
+		wp_enqueue_script( "woo_dsm_css_js", plugins_url( $js_path, self::FILE ), [ "json2", "jquery" ], $js_ver, true );
 
 		wp_localize_script(
-			self::DOMAIN . "_css_js",
-			self::DOMAIN . "_params",
+			"woo_dsm_css_js",
+			"woo_dsm_params",
 			[ "ajax_url" => admin_url( "admin-ajax.php" ), ]
 		);
     }
@@ -450,17 +451,23 @@ class Dropshipping_Shopkeeper
 
 			if ( $name === $column )
 			{
-				$key = get_user_meta( $user_id, "_supplier_secret", true );
+				$k1 = get_user_meta( $user_id, "_dsm_secret",   true );
+				$k2 = get_user_meta( $user_id, "_dsm_secret_s", true );
 
-				if ( $key )
+				if ( $k1 && $k2 )
 				{
-					$text  = translate( "Done", "woo_ds_shopkeeper" );
+					$text  = translate( "Keys setted", "woo_ds_shopkeeper" );
 					$class = "status-processing";
+				}
+				elseif ( ( $k1 && !$k2 ) || ( !$k1 && $k2 ) )
+				{
+					$text  = translate( "Missing one key", "woo_ds_shopkeeper" );
+					$class = "status-on-hold";
 				}
 				else
 				{
-					$text  = translate( "Missing key", "woo_ds_shopkeeper" );
-					$class = "status-on-hold";
+					$text  = translate( "Both keys missing", "woo_ds_shopkeeper" );
+					$class = "status-failed";
 				}
 
 				return "<mark class='order-status {$class}'><span>{$text}</span></mark>";
@@ -500,10 +507,10 @@ class Dropshipping_Shopkeeper
 		if ( !current_user_can( "manage_options" ) ) wp_die( __( "You do not have sufficient permissions to access this page." ) );
 
 		$tabs = [
-			"general"     => "General",
-			"shopkeepers" => "List of suppliers",
-			"settings"    => "Settings",
-			"tools"       => "Tools",
+			"general"   => "General",
+			"suppliers" => "List of suppliers",
+			"settings"  => "Settings",
+			"tools"     => "Tools",
 		];
 
 		$tab  = isset( $_GET[ "tab" ] ) ? $_GET[ "tab" ] : "general";
@@ -568,7 +575,11 @@ class Dropshipping_Shopkeeper
 
 		if ( !current_user_can( "edit_user", $user_id ) ) return false;
 
-		update_user_meta( $user_id, "_supplier_url", $_POST[ "woo_ds_website" ] );
+		if ( isset( $_POST[ "woo_ds_website" ] ) && !empty( $_POST[ "woo_ds_website" ] ) )
+			update_user_meta( $user_id, "_dsm_url", $_POST[ "woo_ds_website" ] );
+
+		if ( isset( $_POST[ "woo_ds_external" ] ) && !empty( $_POST[ "woo_ds_external" ] ) )
+			update_user_meta( $user_id, "_dsm_secret_s", $_POST[ "woo_ds_external" ] );
 	}
 
 	/**
@@ -587,7 +598,7 @@ class Dropshipping_Shopkeeper
 			return wp_send_json_error( $message, 400 );
 		}
 
-		$url_sp  = get_user_meta( $user_id, "_shopkeeper_url", true );
+		$url_sp  = get_user_meta( $user_id, "_dsm_url", true );
 
 		if ( !$url_sp )
 		{
@@ -598,7 +609,7 @@ class Dropshipping_Shopkeeper
 		{
 			$user    = get_user_by( "id", $user_id );
 
-			if ( !in_array( "shopkeeper", $user->roles ) )
+			if ( !in_array( "supplier", $user->roles ) )
 			{
 				$message = translate( "The current user is not a supplier.", "woo_ds_shopkeeper" );
 				return wp_send_json_error( $message, 400 );
@@ -609,7 +620,7 @@ class Dropshipping_Shopkeeper
 			$pass    = "{$user->ID}|{$user->user_email}|{$url_sp}|{$url}";
 			$secret  = password_hash( $pass, PASSWORD_BCRYPT, [ "cost" => $cost ] );
 
-			update_user_meta( $user->ID, "_shopkeeper_secret", $secret );
+			update_user_meta( $user->ID, "_dsm_secret", $secret );
 
 			return wp_send_json_success( $secret );
 		}
