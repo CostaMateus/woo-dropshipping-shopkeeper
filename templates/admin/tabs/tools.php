@@ -1,6 +1,6 @@
 <?php
 /**
- * Tools view
+ * Tools tab view
  *
  * @author 		Mateus Costa <mateus@costamateus.com.br>
  * @package 	Dropshipping_Shopkeeper\Templates\Admin\Tabs
