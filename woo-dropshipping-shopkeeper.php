@@ -80,8 +80,10 @@ class Dropshipping_Shopkeeper
 
         if ( $has_missing ) return;
 
+		$this->add_requires();
         $this->add_actions();
         $this->add_filters();
+		$this->add_classes();
     }
 
 	/**
@@ -185,6 +187,18 @@ class Dropshipping_Shopkeeper
 	}
 
 	/**
+	 * Init plugin dependency classes.
+	 *
+	 * @since 	1.0.0
+	 * @return 	void
+	 */
+	public function add_requires()
+	{
+		if ( !class_exists( "WP_List_Table" ) )
+			require_once( ABSPATH . "wp-admin/includes/class-wp-list-table.php" );
+	}
+
+	/**
 	 * Init plugin actions.
 	 *
 	 * @since 	1.0.0
@@ -217,6 +231,18 @@ class Dropshipping_Shopkeeper
 		add_filter( "plugin_action_links_" . plugin_basename( self::FILE ), [ $this, "plugin_action_links"           ] );
 		add_filter( "manage_users_columns",                                 [ $this, "add_column_title_user"         ] );
 		add_filter( "manage_users_custom_column",                           [ $this, "add_column_content_user"       ], 10, 3 );
+	}
+
+	/**
+	 * Init plugin needed classes.
+	 *
+	 * @since 	1.0.0
+	 * @return 	void
+	 */
+	public function add_classes()
+	{
+		require_once( dirname( self::FILE ) . "/includes/classes/class-woo-dsm-products-table.php" );
+		require_once( dirname( self::FILE ) . "/includes/classes/class-woo-dsm-users-table.php"    );
 	}
 
 	/**
@@ -508,7 +534,8 @@ class Dropshipping_Shopkeeper
 
 		$tabs = [
 			"general"   => "General",
-			"suppliers" => "List of suppliers",
+			"suppliers" => "Suppliers",
+			"products"  => "Products",
 			"settings"  => "Settings",
 			"tools"     => "Tools",
 		];
