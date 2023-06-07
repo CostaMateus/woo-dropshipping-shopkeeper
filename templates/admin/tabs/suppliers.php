@@ -1,6 +1,6 @@
 <?php
 /**
- * Suppliers view
+ * Suppliers tab view
  *
  * @author 		Mateus Costa <mateus@costamateus.com.br>
  * @package 	Dropshipping_Shopkeeper\Templates\Admin\Tabs
@@ -9,11 +9,16 @@
 
 defined( "ABSPATH" ) || exit;
 
-$url = esc_url( admin_url( "users.php?role=supplier" ) );
+use Dropshipping_Shopkeeper\Classes\Tables\DSM_Users_table;
+
+$users_table = new DSM_Users_table();
 ?>
 
 <section>
-	<h2><?php _e( "List of suppliers", "woo_ds_shopkeeper" ); ?></h2>
+	<h2><?php _e( "Suppliers", "woo_ds_shopkeeper" ); ?></h2>
 
-	<p><a href="<?php echo $url; ?>" ><?php _e( "Click here", "woo_ds_shopkeeper" ); ?></a></p>
+	<?php
+		$users_table->prepare_items();
+		$users_table->display();
+	?>
 </section>
