@@ -20,12 +20,12 @@ class DSM_Users_table extends \WP_List_Table
     public function get_columns()
     {
         return $columns = [
-            "cb"       => "",
+            // "cb"       => "",
             "username" => __( "Username", "woo_ds_shopkeeper" ),
             "name"     => __( "Name",     "woo_ds_shopkeeper" ),
             "email"    => __( "Email",    "woo_ds_shopkeeper" ),
-            "keys"     => __( "Keys",     "woo_ds_shopkeeper" ),
             "products" => __( "Products", "woo_ds_shopkeeper" ),
+            "keys"     => __( "Keys",     "woo_ds_shopkeeper" ),
         ];
     }
 
@@ -113,9 +113,6 @@ class DSM_Users_table extends \WP_List_Table
 
         $this->_column_headers = [ $columns, $hidden, $sortable ];
 
-        // $this->process_bulk_action();
-        // $action = $this->current_action();
-
         usort( $users, [ &$this, "usort_reorder" ] );
 
         $per_page              = 10;
@@ -123,10 +120,8 @@ class DSM_Users_table extends \WP_List_Table
         $total_items           = count( $users );
         $total_pages           = ceil( $total_items / $per_page );
 
-        // only ncessary because we have sample data
         $users                 = array_chunk( $users, $per_page )[ $current_page - 1 ];
 
-        //Page Number
         if ( empty( $paged ) || !is_numeric( $paged ) || $paged<=0 )
             $paged = 1;
 
@@ -140,11 +135,12 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
-     * Undocumented function
+     * Unmapped columns
      *
-     * @param [type] $item
-     * @param [type] $column_name
-     * @return void
+     * @since   1.0.0
+     * @param   array|object    $item
+     * @param   string          $column_name
+     * @return  mixed
      */
     public function column_default( $item, $column_name )
     {
@@ -156,11 +152,25 @@ class DSM_Users_table extends \WP_List_Table
         }
     }
 
+    /**
+     * Checkbox column
+     *
+     * @since   1.0.0
+     * @param   array|object $item
+     * @return  string
+     */
     public function column_cb( $item )
     {
-        return sprintf( "<input type='checkbox' name='users[]' value='%s' />", $item->ID );
+        // return sprintf( "<input type='checkbox' name='users[]' value='%s' />", $item->ID );
     }
 
+    /**
+     * Username column
+     *
+     * @since   1.0.0
+     * @param   array|object $item
+     * @return  string
+     */
     public function column_username( $item )
     {
         $actions = [];
@@ -186,16 +196,37 @@ class DSM_Users_table extends \WP_List_Table
         return sprintf( "%1s %2s", $item->user_login, $this->row_actions( $actions ) );
     }
 
+    /**
+     * Name column
+     *
+     * @since   1.0.0
+     * @param   array|object $item
+     * @return  string
+     */
     public function column_name( $item )
     {
         return $item->user_firstname . " " . $item->user_lastname;
     }
 
+    /**
+     * Email column
+     *
+     * @since   1.0.0
+     * @param   array|object $item
+     * @return  string
+     */
     public function column_email( $item )
     {
         return $item->user_email;
     }
 
+    /**
+     * Keys column
+     *
+     * @since   1.0.0
+     * @param   array|object $item
+     * @return  string
+     */
     public function column_keys( $item )
     {
         $meta = $item->usermeta;
@@ -222,6 +253,13 @@ class DSM_Users_table extends \WP_List_Table
         return "<mark class='order-status {$class}'><span>{$text}</span></mark>";
     }
 
+    /**
+     * Products column
+     *
+     * @since   1.0.0
+     * @param   array|object $item
+     * @return  string
+     */
     public function column_products( $item )
     {
         $count    = 0;
