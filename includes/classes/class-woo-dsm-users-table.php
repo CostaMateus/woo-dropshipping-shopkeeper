@@ -48,15 +48,15 @@ class DSM_Users_table extends \WP_List_Table
      * Sort users by username, email or quantity of products.
      *
      * @since   1.0.0
-     * @param   array $a
-     * @param   array $b
+     * @param   object $a
+     * @param   object $b
      * @return  int
      */
     public function usort_reorder( $a, $b )
     {
         $orderby = ( !empty( $_GET[ "orderby" ] ) ) ? $_GET[ "orderby" ] : "username";
         $order   = ( !empty( $_GET[ "order"   ] ) ) ? $_GET[ "order"   ] : "asc";
-        $result  = strcmp( $a[ $orderby ], $b[ $orderby ] );
+        $result  = strcmp( $a->$orderby, $b->$orderby );
 
         return ( $order === "asc" ) ? $result : -$result;
     }
@@ -174,6 +174,7 @@ class DSM_Users_table extends \WP_List_Table
     public function column_username( $item )
     {
         $actions = [];
+        $actions[ "id" ] = "ID: {$item->ID}";
 
         if ( current_user_can( "edit_user", $item->ID ) )
         {
@@ -278,7 +279,15 @@ class DSM_Users_table extends \WP_List_Table
                 $count++;
         }
 
-        return $count;
+        $link = $count;
+
+        if ( $count > 0 )
+        {
+            $url  = esc_url( admin_url( "admin.php?page=woo_ds_shopkeeper&tab=products&supplier={$item->ID}" ) );
+            $link = "<a href='{$url}' >{$count}</a>";
+        }
+
+        return $link;
     }
 
     /**
