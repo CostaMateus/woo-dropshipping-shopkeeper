@@ -50,5 +50,52 @@
 
             return false;
         } );
+
+        $( "#doaction"  ).click( function ( e ) {
+            const action = $( "#bulk-action-selector-top"    ).val();
+            preventSubmitBulkActions( e, action );
+        } );
+
+        $( "#doaction2" ).click( function ( e ) {
+            const action = $( "#bulk-action-selector-bottom" ).val();
+            preventSubmitBulkActions( e, action );
+        } );
+
+        function preventSubmitBulkActions( e, a )
+        {
+            e.preventDefault();
+
+            const users = $( '#dsm-users-list-table-form input[name^="users"]:checked' );
+
+            if ( a == "-1" ) return;
+
+            if ( users.length == 0 )
+            {
+                alert( woo_dsm_params.messages.select_users );
+                return;
+            }
+
+            if ( a == "del_users" )
+            {
+                if ( confirm( woo_dsm_params.messages.del_users ) )
+                {
+                    $( "#dsm-modal-load" ).removeClass( "dsm-d-none" );
+                    $( "#dsm-users-list-table-form" ).submit();
+                }
+            }
+            else if ( a == "del_products" )
+            {
+                if ( confirm( woo_dsm_params.messages.del_products ) )
+                {
+                    $( "#dsm-modal-load" ).removeClass( "dsm-d-none" );
+                    $( "#dsm-users-list-table-form" ).submit();
+                }
+            }
+            else
+            {
+                $( "#dsm-modal-load" ).removeClass( "dsm-d-none" );
+                $( "#dsm-users-list-table-form" ).submit();
+            }
+        }
     } );
 }( jQuery ) );
