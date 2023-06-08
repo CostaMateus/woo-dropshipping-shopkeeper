@@ -15,10 +15,19 @@ $users_table = new DSM_Users_table();
 ?>
 
 <section>
-	<h2><?php _e( "Suppliers", "woo_ds_shopkeeper" ); ?></h2>
+	<div class="wrap" id="dsm-users-list-table" >
+		<h2><?php _e( "Suppliers", "woo_ds_shopkeeper" ); ?></h2>
+		<form id="dsm-users-list-table-form" method="post" >
+			<?php
+				$page  = filter_input( INPUT_GET, 'page',  FILTER_SANITIZE_STRIPPED   );
+				$paged = filter_input( INPUT_GET, 'paged', FILTER_SANITIZE_NUMBER_INT );
 
-	<?php
-		$users_table->prepare_items();
-		$users_table->display();
-	?>
+				printf( "<input type='hidden' name='page'  value='%s' />", $page  );
+				printf( "<input type='hidden' name='paged' value='%d' />", $paged );
+
+				$users_table->prepare_items();
+				$users_table->display();
+			?>
+		</form>
+	</div>
 </section>
