@@ -1,13 +1,13 @@
 woo-dropshipping-shopkeeper
 
-- precisa criar status 'wc-shipped'
-    - slug       : wc-shipped
-    - label      : Shipped (Enviado)
-    - background : #C7DCD4
-    - color      : #456437
+    - precisa criar status 'wc-shipped'
+        - slug       : wc-shipped
+        - label      : Shipped (Enviado)
+        - background : #C7DCD4
+        - color      : #456437
 
-- precisa criar 'role': 'supplier'
-- precisa receber o token gerado pelo 'supplier'
-- precisa criar rest-api para:
-    - POST receber atualização dos pedidos
-    - POST receber atualização do estoque dos produtos
+ok - precisa criar 'role': 'supplier'
+ok - precisa receber o token gerado pelo 'supplier'
+   - precisa criar rest-api para:
+        - POST receber atualização dos pedidos
+        - POST receber atualização do estoque dos produtos
