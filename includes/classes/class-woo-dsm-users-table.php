@@ -20,7 +20,7 @@ class DSM_Users_table extends \WP_List_Table
     public function get_columns()
     {
         return $columns = [
-            // "cb"       => "",
+            "cb"       => "",
             "username" => __( "Username", "woo_ds_shopkeeper" ),
             "name"     => __( "Name",     "woo_ds_shopkeeper" ),
             "email"    => __( "Email",    "woo_ds_shopkeeper" ),
@@ -62,17 +62,21 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
+     * Get bulk actions
      *
      * @since   1.0.0
-     * @return  void
+     * @return  array
      */
     public function get_bulk_actions()
     {
-        // $actions = [
-        //     "delete" => "Delete"
-        // ];
-        //
-        // return $actions;
+        $actions = [
+            "sync"         => __( "Sync stock",       "woo_ds_shopkeeper" ),
+            "import"       => __( "Import products",  "woo_ds_shopkeeper" ),
+            "del_products" => __( "Delete products",  "woo_ds_shopkeeper" ),
+            "del_users"    => __( "Delete suppliers", "woo_ds_shopkeeper" )
+        ];
+
+        return $actions;
     }
 
     /**
@@ -113,6 +117,8 @@ class DSM_Users_table extends \WP_List_Table
 
         $this->_column_headers = [ $columns, $hidden, $sortable ];
 
+        $this->process_bulk_action();
+
         usort( $users, [ &$this, "usort_reorder" ] );
 
         $per_page              = 10;
@@ -122,7 +128,7 @@ class DSM_Users_table extends \WP_List_Table
 
         $users                 = array_chunk( $users, $per_page )[ $current_page - 1 ];
 
-        if ( empty( $paged ) || !is_numeric( $paged ) || $paged<=0 )
+        if ( empty( $paged ) || !is_numeric( $paged ) || $paged <= 0 )
             $paged = 1;
 
         $this->set_pagination_args( [
@@ -132,6 +138,48 @@ class DSM_Users_table extends \WP_List_Table
         ] );
 
         $this->items           = $users;
+    }
+
+    /**
+     * Process the bulk actions
+     *
+     * @since   1.0.0
+     * @return  void
+     */
+    public function process_bulk_action()
+    {
+        if ( isset( $_POST[ "_wpnonce" ] ) && !empty( $_POST[ "_wpnonce" ] ) )
+        {
+            $nonce  = filter_input( INPUT_POST, "_wpnonce", FILTER_SANITIZE_STRING );
+            $action = "bulk-" . $this->_args[ "plural" ];
+
+            if ( ! wp_verify_nonce( $nonce, $action ) ) wp_die( "Nope! Security check failed!" );
+        }
+
+        $action  = $this->current_action();
+
+        $actions = array_keys( $this->get_bulk_actions() );
+
+        if ( !in_array( $action, $actions ) ) return;
+
+        switch ( $action )
+        {
+            case "sync":
+                $this->process_b_a_sync();
+            break;
+
+            case "import":
+                $this->process_b_a_import();
+            break;
+
+            case "del_products":
+                $this->process_b_a_del_products();
+            break;
+
+            case "del_users":
+                $this->process_b_a_del_users();
+            break;
+        }
     }
 
     /**
@@ -161,7 +209,7 @@ class DSM_Users_table extends \WP_List_Table
      */
     public function column_cb( $item )
     {
-        // return sprintf( "<input type='checkbox' name='users[]' value='%s' />", $item->ID );
+        return sprintf( "<input type='checkbox' name='users[]' value='%s' />", $item->ID );
     }
 
     /**
@@ -173,8 +221,10 @@ class DSM_Users_table extends \WP_List_Table
      */
     public function column_username( $item )
     {
-        $actions = [];
+        $actions         = [];
         $actions[ "id" ] = "ID: {$item->ID}";
+
+        $username        = $item->user_login;
 
         if ( current_user_can( "edit_user", $item->ID ) )
         {
@@ -186,15 +236,11 @@ class DSM_Users_table extends \WP_List_Table
                 )
             );
 
-            $actions[ "edit"   ] = "<a href='{$edit_link}'>" . __( "Edit",   "woo_ds_shopkeeper" ) . "</a>";
+            $actions[ "edit" ] = "<a href='{$edit_link}'>" . __( "Edit",   "woo_ds_shopkeeper" ) . "</a>";
+            $username          = "<strong><a href='{$edit_link}'>{$username}</a></strong>";
         }
 
-        if ( get_current_user_id() !== $item->ID && current_user_can( "delete_user", $item->ID ) )
-        {
-            $actions[ "delete" ] = "<a class='submitdelete' href='" . wp_nonce_url( "users.php?action=delete&amp;user=$item->ID", "bulk-users" ) . "'>" . __( "Delete", "woo_ds_shopkeeper" ) . "</a>";
-        }
-
-        return sprintf( "%1s %2s", $item->user_login, $this->row_actions( $actions ) );
+        return sprintf( "%1s %2s", $username, $this->row_actions( $actions ) );
     }
 
     /**
@@ -279,7 +325,7 @@ class DSM_Users_table extends \WP_List_Table
                 $count++;
         }
 
-        $link = $count;
+        $link     = $count;
 
         if ( $count > 0 )
         {
@@ -302,5 +348,45 @@ class DSM_Users_table extends \WP_List_Table
 
         // if ( $which == "bottom" )
         //     echo"Hi, I'm after the table";
+    }
+
+    /**
+     *
+     * @since   1.0.0
+     * @return  void
+     */
+    public function process_b_a_sync()
+    {
+
+    }
+
+    /**
+     *
+     * @since   1.0.0
+     * @return  void
+     */
+    public function process_b_a_import()
+    {
+
+    }
+
+    /**
+     *
+     * @since   1.0.0
+     * @return  void
+     */
+    public function process_b_a_del_products()
+    {
+
+    }
+
+    /**
+     *
+     * @since   1.0.0
+     * @return  void
+     */
+    public function process_b_a_del_users()
+    {
+
     }
 }
