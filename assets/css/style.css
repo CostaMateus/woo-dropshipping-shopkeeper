@@ -58,3 +58,28 @@
     background: #eba3a3;
     color: #761919;
 }
+
+.thumbnail.column-thumbnail {
+    text-align: center !important;
+}
+
+table.wp-list-table mark.instock,
+table.wp-list-table mark.outofstock,
+table.wp-list-table mark.onbackorder {
+    font-weight: 700;
+    background: transparent none;
+    line-height: 1;
+}
+table.wp-list-table mark.instock {
+    color: #7ad03a;
+}
+table.wp-list-table mark.outofstock {
+    color: #a44;
+}
+table.wp-list-table mark.onbackorder {
+    color: #eaa600;
+}
+table.wp-list-table .column-thumbnail,
+table.wp-list-table .column-price {
+    width: 10ch;
+}
