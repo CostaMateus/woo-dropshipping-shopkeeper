@@ -12,6 +12,31 @@ namespace Dropshipping_Shopkeeper\Classes\Tables;
 class DSM_Users_table extends \WP_List_Table
 {
     /**
+     * Product data
+     *
+     * @since   1.0.0
+     * @var     array|stdClass
+     */
+    protected $products;
+
+    /**
+     * Constructor
+     *
+     * @since   1.0.0
+     * @return  void
+     */
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->products = wc_get_products( [
+            "limit"        => -1,
+            "meta_key"     => "_dsm_supplier",
+            "meta_compare" => "EXISTS",
+        ] );
+    }
+
+    /**
      * Define the columns that are going to be used in the table
      *
      * @since   1.0.0
@@ -98,6 +123,8 @@ class DSM_Users_table extends \WP_List_Table
      */
     public function prepare_items()
     {
+        $this->process_bulk_action();
+
 		$users = get_users( [
 			"role"  => "supplier",
 			"order" => "ASC"
@@ -116,8 +143,6 @@ class DSM_Users_table extends \WP_List_Table
         $sortable              = $this->get_sortable_columns();
 
         $this->_column_headers = [ $columns, $hidden, $sortable ];
-
-        $this->process_bulk_action();
 
         usort( $users, [ &$this, "usort_reorder" ] );
 
@@ -310,13 +335,7 @@ class DSM_Users_table extends \WP_List_Table
     {
         $count    = 0;
 
-        $products = wc_get_products( [
-            "limit"        => -1,
-            "meta_key"     => "_dsm_supplier",
-            "meta_compare" => "EXISTS",
-        ] );
-
-        foreach ( $products as $product )
+        foreach ( $this->products as $product )
         {
             $meta = $product->get_meta( "_dsm_supplier" );
 
@@ -370,22 +389,64 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
+     * Delete products of supplier
      *
      * @since   1.0.0
      * @return  void
      */
     public function process_b_a_del_products()
     {
+        $users = $_POST[ "users" ];
 
+        if ( !empty( $users ) && !empty( $this->products ) )
+        {
+            foreach ( $users as $user_id )
+            {
+                foreach ( $this->products as $product )
+                {
+                    $meta_id = $product->get_meta( "_dsm_supplier" );
+
+                    if ( !empty( $meta_id ) && $meta_id == $user_id )
+                    {
+                        if ( $product->is_type( "variable" ) )
+                        {
+                            foreach ( $product->get_children() as $child_id )
+                            {
+                                $child = wc_get_product( $child_id );
+                                $child->delete( true );
+                            }
+                        }
+                        elseif ( $product->is_type( "grouped" ) )
+                        {
+                            foreach ( $product->get_children() as $child_id )
+                            {
+                                $child = wc_get_product( $child_id );
+                                $child->set_parent_id( 0 );
+                                $child->save();
+                            }
+                        }
+
+                        $product->delete( true );
+                    }
+                }
+            }
+        }
     }
 
     /**
+     * Delete products and the supplier.
      *
      * @since   1.0.0
      * @return  void
      */
     public function process_b_a_del_users()
     {
+        $this->process_b_a_del_products();
 
+        $users = $_POST[ "users" ];
+
+        if ( !empty( $users ) )
+            foreach ( $users as $user_id )
+                wp_delete_user( $user_id );
     }
 }
