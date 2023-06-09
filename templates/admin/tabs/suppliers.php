@@ -11,22 +11,30 @@ defined( "ABSPATH" ) || exit;
 
 use Dropshipping_Shopkeeper\Classes\Tables\DSM_Users_table;
 
-$users_table = new DSM_Users_table();
+$u_table = new DSM_Users_table();
+$nu_url  = esc_url( admin_url( "user-new.php" ) );
+$nu_text = __( "Add New", "woo_ds_shopkeeper" );
 ?>
 
 <section>
 	<div class="wrap" id="dsm-users-list-table" >
-		<h2><?php _e( "Suppliers", "woo_ds_shopkeeper" ); ?></h2>
+		<h2 class="wp-heading-inline" style="display:inline;" >
+			<?php _e( "Suppliers", "woo_ds_shopkeeper" ); ?>
+		</h2>
+		<a class="page-title-action" href="<?php echo $new_user; ?>" >
+			<?php echo $nu_text; ?>
+		</a>
+
 		<form id="dsm-users-list-table-form" method="post" >
 			<?php
-				$page  = filter_input( INPUT_GET, 'page',  FILTER_SANITIZE_STRIPPED   );
+				$page  = htmlspecialchars( $_POST[ "page" ] );
 				$paged = filter_input( INPUT_GET, 'paged', FILTER_SANITIZE_NUMBER_INT );
 
 				printf( "<input type='hidden' name='page'  value='%s' />", $page  );
 				printf( "<input type='hidden' name='paged' value='%d' />", $paged );
 
-				$users_table->prepare_items();
-				$users_table->display();
+				$u_table->prepare_items();
+				$u_table->display();
 			?>
 		</form>
 	</div>
