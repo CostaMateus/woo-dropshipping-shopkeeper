@@ -63,6 +63,15 @@
 
         function preventSubmitBulkActions( e, a )
         {
+            const query  = window.location.search;
+            const params = new URLSearchParams( query );
+
+            const page   = params.has( "page" ) ? params.get( "page" ) : 0;
+            if ( page == 0 || page != "woo_ds_shopkeeper" ) return;
+
+            const tab    = params.has( "tab" ) ? params.get( "tab" ) : 0;
+            if ( tab  == 0 || tab  != "suppliers" ) return;
+
             e.preventDefault();
 
             const users = $( '#dsm-users-list-table-form input[name^="users"]:checked' );
