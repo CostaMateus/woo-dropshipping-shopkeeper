@@ -150,14 +150,13 @@ class DSM_Users_table extends \WP_List_Table
     {
         if ( isset( $_POST[ "_wpnonce" ] ) && !empty( $_POST[ "_wpnonce" ] ) )
         {
-            $nonce  = filter_input( INPUT_POST, "_wpnonce", FILTER_SANITIZE_STRING );
+            $nonce  = htmlspecialchars( $_POST[ "_wpnonce" ] );
             $action = "bulk-" . $this->_args[ "plural" ];
 
-            if ( ! wp_verify_nonce( $nonce, $action ) ) wp_die( "Nope! Security check failed!" );
+            if ( !wp_verify_nonce( $nonce, $action ) ) wp_die( "Nope! Security check failed!" );
         }
 
         $action  = $this->current_action();
-
         $actions = array_keys( $this->get_bulk_actions() );
 
         if ( !in_array( $action, $actions ) ) return;
