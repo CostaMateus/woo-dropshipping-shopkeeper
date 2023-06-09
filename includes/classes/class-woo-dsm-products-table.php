@@ -114,6 +114,11 @@ class DSM_Products_table extends \WP_List_Table
 
         $this->filter_products();
 
+        /**
+         * TODO usort personalizado
+         * Apenas campos name / user_firstname / sku / price / date
+         */
+
         $per_page              = 10;
         $current_page          = $this->get_pagenum();
         $total_items           = count( $this->products );
