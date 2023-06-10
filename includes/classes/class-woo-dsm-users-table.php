@@ -122,7 +122,7 @@ class DSM_Users_table extends \WP_List_Table
             if ( $_GET[ "orderby" ] === "products" ) $orderby = "qty_products";
         }
 
-        $order   = ( !empty( $_GET[ "order"   ] ) ) ? $_GET[ "order"   ] : "asc";
+        $order   = ( !empty( $_GET[ "order" ] ) ) ? $_GET[ "order" ] : "asc";
         $result  = strcasecmp( $a->$orderby, $b->$orderby );
 
         return ( $order === "asc" ) ? $result : -$result;

@@ -33,6 +33,23 @@ class DSM_Products_table extends \WP_List_Table
             "meta_key"     => "_dsm_supplier",
             "meta_compare" => "EXISTS",
         ] );
+
+		$users          = get_users( [
+			"role"  => "supplier",
+			"order" => "ASC"
+		] );
+
+        foreach ( $this->products as &$product )
+        {
+            foreach ( $users as $user )
+            {
+                if ( $user->ID == $product->get_meta( "_dsm_supplier" ) )
+                {
+                    $product->supplier = "{$user->user_firstname} {$user->user_lastname}";
+                    break;
+                }
+            }
+        }
     }
 
     /**
@@ -71,6 +88,32 @@ class DSM_Products_table extends \WP_List_Table
             "price"    => [ "price",    false ],
             "date"     => [ "date",     false ],
         ];
+    }
+
+    /**
+     * Sort users by name, supplier, sku, price or date.
+     *
+     * @since   1.0.0
+     * @param   object $a
+     * @param   object $b
+     * @return  int
+     */
+    public function usort_reorder( $a, $b )
+    {
+        $orderby = "name";
+
+        if ( !empty( $_GET[ "orderby" ] ) )
+        {
+            if ( $_GET[ "orderby" ] === "supplier" ) $orderby = "supplier";
+            if ( $_GET[ "orderby" ] === "sku"      ) $orderby = "sku";
+            if ( $_GET[ "orderby" ] === "price"    ) $orderby = "price";
+            if ( $_GET[ "orderby" ] === "date"     ) $orderby = "date_created";
+        }
+
+        $order   = ( !empty( $_GET[ "order" ] ) ) ? $_GET[ "order" ] : "asc";
+        $result  = strcasecmp( $a->$orderby, $b->$orderby );
+
+        return ( $order === "asc" ) ? $result : -$result;
     }
 
     /**
@@ -114,10 +157,7 @@ class DSM_Products_table extends \WP_List_Table
 
         $this->filter_products();
 
-        /**
-         * TODO usort personalizado
-         * Apenas campos name / user_firstname / sku / price / date
-         */
+        usort( $this->products, [ &$this, "usort_reorder" ] );
 
         $per_page              = 10;
         $current_page          = $this->get_pagenum();
@@ -220,12 +260,9 @@ class DSM_Products_table extends \WP_List_Table
     public function column_supplier( $item )
     {
         $id              = $item->get_meta( "_dsm_supplier" );
-        $user            = get_user_by( "id", $id );
-
         $actions         = [];
         $actions[ "id" ] = "ID: {$id}";
-
-        $name            = "{$user->user_firstname} {$user->user_lastname}";
+        $name            = $item->supplier;
 
         if ( current_user_can( "edit_posts" ) )
         {
@@ -238,7 +275,7 @@ class DSM_Products_table extends \WP_List_Table
             );
 
             $actions[ "edit" ] = "<a href='{$edit_link}'>" . __( "Edit",   "woo_ds_shopkeeper" ) . "</a>";
-            $name              = "<strong><a href='{$edit_link}'>{$name}</a></strong>";
+            $name              = "<strong><a href='{$edit_link}'>{$item->supplier}</a></strong>";
         }
 
         return sprintf( "%1s %2s", $name, $this->row_actions( $actions ) );
