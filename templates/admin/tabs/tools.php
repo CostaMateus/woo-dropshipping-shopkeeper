@@ -12,5 +12,5 @@ defined( "ABSPATH" ) || exit;
 ?>
 
 <section>
-	<h2><?php _e( "Tools", "woo_ds_supplier" ); ?></h2>
+	<h2><?php _e( "Tools", "woo_ds_shopkeeper" ); ?></h2>
 </section>

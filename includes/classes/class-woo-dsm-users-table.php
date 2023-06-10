@@ -289,7 +289,7 @@ class DSM_Users_table extends \WP_List_Table
                 )
             );
 
-            $actions[ "edit" ] = "<a href='{$edit_link}'>" . __( "Edit",   "woo_ds_shopkeeper" ) . "</a>";
+            $actions[ "edit" ] = "<a href='{$edit_link}'>" . __( "Edit", "woo_ds_shopkeeper" ) . "</a>";
             $username          = "<strong><a href='{$edit_link}'>{$username}</a></strong>";
         }
 
