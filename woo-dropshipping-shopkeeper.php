@@ -200,6 +200,9 @@ class Dropshipping_Shopkeeper
 		add_action( "admin_footer", function () {
 			require_once( dirname( self::FILE ) . "/templates/load.php" );
 		} );
+
+		require_once( dirname( self::FILE ) . "/includes/rest-api/Utilities/SingletonTrait.php" );
+		require_once( dirname( self::FILE ) . "/includes/rest-api/Server.php" );
 	}
 
 	/**
@@ -210,7 +213,9 @@ class Dropshipping_Shopkeeper
 	 */
     public function add_actions()
     {
+		add_action( "init",                     [ $this, "load_rest_api"             ]     );
         add_action( "init",                     [ $this, "add_custom_order_status"   ]     );
+
 		add_action( "admin_menu",               [ $this, "add_admin_menu"            ], 9  );
         add_action( "admin_enqueue_scripts",    [ $this, "add_admin_style_script"    ]     );
 
@@ -247,6 +252,17 @@ class Dropshipping_Shopkeeper
 	{
 		require_once( dirname( self::FILE ) . "/includes/classes/class-woo-dsm-products-table.php" );
 		require_once( dirname( self::FILE ) . "/includes/classes/class-woo-dsm-users-table.php"    );
+	}
+
+	/**
+	 * Load REST API.
+	 *
+	 * @since 	1.0.0
+	 * @return 	void
+	 */
+	public function load_rest_api()
+	{
+		\Dropshipping_Shopkeeper\RestApi\Server::instance()->init();
 	}
 
 	/**
