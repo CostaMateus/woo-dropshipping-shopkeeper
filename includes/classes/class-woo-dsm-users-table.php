@@ -12,12 +12,20 @@ namespace Dropshipping_Shopkeeper\Classes\Tables;
 class DSM_Users_table extends \WP_List_Table
 {
     /**
-     * Product data
+     * Products data
      *
      * @since   1.0.0
      * @var     array|stdClass
      */
     protected $products;
+
+    /**
+     * Users data
+     *
+     * @since   1.0.0
+     * @var     array|stdClass
+     */
+    protected $users;
 
     /**
      * Constructor
@@ -34,6 +42,33 @@ class DSM_Users_table extends \WP_List_Table
             "meta_key"     => "_dsm_supplier",
             "meta_compare" => "EXISTS",
         ] );
+
+		$this->users    = get_users( [
+			"role"  => "supplier",
+			"order" => "ASC"
+		] );
+
+        array_map( function( &$user ) {
+            $user->usermeta = array_map( function ($data ) {
+                return reset( $data );
+            }, get_user_meta( $user->ID ) );
+            return $user;
+        }, $this->users );
+
+        foreach ( $this->users as &$user )
+        {
+            $count = 0;
+
+            foreach ( $this->products as $product )
+            {
+                $id = $product->get_meta( "_dsm_supplier" );
+
+                if ( !empty( $id ) && $id == $user->ID )
+                    $count++;
+            }
+
+            $user->qty_products = $count;
+        }
     }
 
     /**
@@ -79,9 +114,16 @@ class DSM_Users_table extends \WP_List_Table
      */
     public function usort_reorder( $a, $b )
     {
-        $orderby = ( !empty( $_GET[ "orderby" ] ) ) ? $_GET[ "orderby" ] : "username";
+        $orderby = "username";
+
+        if ( !empty( $_GET[ "orderby" ] ) )
+        {
+            if ( $_GET[ "orderby" ] === "email"    ) $orderby = "user_email";
+            if ( $_GET[ "orderby" ] === "products" ) $orderby = "qty_products";
+        }
+
         $order   = ( !empty( $_GET[ "order"   ] ) ) ? $_GET[ "order"   ] : "asc";
-        $result  = strcmp( $a->$orderby, $b->$orderby );
+        $result  = strcasecmp( $a->$orderby, $b->$orderby );
 
         return ( $order === "asc" ) ? $result : -$result;
     }
@@ -125,33 +167,20 @@ class DSM_Users_table extends \WP_List_Table
     {
         $this->process_bulk_action();
 
-		$users = get_users( [
-			"role"  => "supplier",
-			"order" => "ASC"
-		] );
-
-        array_map( function( $user ) {
-            $user->usermeta = array_map( function ($data ) {
-                return reset( $data );
-            }, get_user_meta( $user->ID ) );
-
-            return $user;
-        }, $users );
-
         $hidden                = [];
         $columns               = $this->get_columns();
         $sortable              = $this->get_sortable_columns();
 
         $this->_column_headers = [ $columns, $hidden, $sortable ];
 
-        usort( $users, [ &$this, "usort_reorder" ] );
+        usort( $this->users, [ &$this, "usort_reorder" ] );
 
         $per_page              = 10;
         $current_page          = $this->get_pagenum();
-        $total_items           = count( $users );
+        $total_items           = count( $this->users );
         $total_pages           = ceil( $total_items / $per_page );
 
-        $users                 = array_chunk( $users, $per_page )[ $current_page - 1 ];
+        $this->users           = array_chunk( $this->users, $per_page )[ $current_page - 1 ];
 
         if ( empty( $paged ) || !is_numeric( $paged ) || $paged <= 0 )
             $paged = 1;
@@ -162,7 +191,7 @@ class DSM_Users_table extends \WP_List_Table
             "per_page"    => $per_page,
         ] );
 
-        $this->items           = $users;
+        $this->items           = $this->users;
     }
 
     /**
@@ -333,22 +362,12 @@ class DSM_Users_table extends \WP_List_Table
      */
     public function column_products( $item )
     {
-        $count    = 0;
+        $link = $item->qty_products;
 
-        foreach ( $this->products as $product )
-        {
-            $meta = $product->get_meta( "_dsm_supplier" );
-
-            if ( !empty( $meta ) && $meta == $item->ID )
-                $count++;
-        }
-
-        $link     = $count;
-
-        if ( $count > 0 )
+        if ( $item->qty_products > 0 )
         {
             $url  = esc_url( admin_url( "admin.php?page=woo_ds_shopkeeper&tab=products&supplier={$item->ID}" ) );
-            $link = "<a href='{$url}' >{$count}</a>";
+            $link = "<a href='{$url}' >{$item->qty_products}</a>";
         }
 
         return $link;
