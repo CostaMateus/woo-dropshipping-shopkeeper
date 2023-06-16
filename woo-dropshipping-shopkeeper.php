@@ -541,7 +541,7 @@ class Dropshipping_Shopkeeper
 		add_menu_page(
 			"Dropshipping Shopkeeper Module",
 			"DSM - Shopkeeper",
-			'manage_options',
+			"manage_options",
 			self::DOMAIN,
 			[ $this, "display_admin_menu" ],
 			plugins_url( "assets/images/dsm.png", self::FILE ),
