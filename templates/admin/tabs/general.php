@@ -25,27 +25,29 @@ defined( "ABSPATH" ) || exit;
 				<tbody>
 					<tr valign="top" >
 						<th scope="row" class="titledesc" >
-							<label for="">
+							<label for="dsm_email_general" >
 								<?php _e( "E-mail account", "woo_ds_shopkeeper" ); ?>
 							</label>
 						</th>
 						<td class="forminp" >
-							<input class="input-text regular-input" type="email" name="dsm_email_general" value="<?php echo $email_general; ?>" >
+							<input id="dsm_email_general" class="input-text regular-input" type="email" name="dsm_email_general" value="<?php echo $email_general; ?>" >
 							<p class="description" ><?php _e( "The supplier will create an account with this email. And it will be used to communicate with the supplier. If you leave it blank, the WP default will be used, inform the suppplier.", "woo_ds_shopkeeper" ); ?></p>
 							<p class="description" ><?php echo __( "Default: ", "woo_ds_shopkeeper" ) . get_bloginfo( "admin_email" ); ?></p>
 						</td>
 					</tr>
-					<!-- <tr valign="top" style="display:none;" >
+					<tr valign="top" >
 						<th scope="row" class="titledesc" >
-							<label for="">
-								<?php _e( "", "woo_ds_shopkeeper" ); ?>
+							<label for="dsm_categories_general" >
+								<?php _e( "Import categories", "woo_ds_shopkeeper" ); ?>
 							</label>
 						</th>
 						<td class="forminp" >
-							<input class="input-text regular-input" type="email" >
-							<p class="description" ><?php _e( "", "woo_ds_shopkeeper" ); ?></p>
+							<input id="dsm_categories_general" class="input-text regular-input" type="checkbox" name="dsm_categories_general"
+								value="<?php echo $categories_general; ?>" <?php echo ( !empty( $categories_general ) ) ? "checked" : ""; ?> >
+							<?php _e( "Enable / Disable", "woo_ds_shopkeeper" ); ?>
+							<p class="description" ><?php _e( "If enabled, it imports the product categories of each supplier.", "woo_ds_shopkeeper" ); ?></p>
 						</td>
-					</tr> -->
+					</tr>
 				</tbody>
 			</table>
 
