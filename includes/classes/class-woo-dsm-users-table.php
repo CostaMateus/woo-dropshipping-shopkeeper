@@ -37,13 +37,34 @@ class DSM_Users_table extends \WP_List_Table
     {
         parent::__construct();
 
+        $this->load_products();
+		$this->load_users();
+    }
+
+    /**
+     * Load the products data
+     *
+     * @since   1.0.0
+     * @return  void
+     */
+    private function load_products()
+    {
         $this->products = wc_get_products( [
             "limit"        => -1,
             "meta_key"     => "_dsm_supplier",
             "meta_compare" => "EXISTS",
         ] );
+    }
 
-		$this->users    = get_users( [
+    /**
+     * Load the users data
+     *
+     * @since   1.0.0
+     * @return  void
+     */
+    private function load_users()
+    {
+		$this->users = get_users( [
 			"role"  => "supplier",
 			"order" => "ASC"
 		] );
@@ -166,6 +187,12 @@ class DSM_Users_table extends \WP_List_Table
     public function prepare_items()
     {
         $this->process_bulk_action();
+
+        if ( $this->current_action() != "sync" )
+        {
+            $this->load_products();
+            $this->load_users();
+        }
 
         $hidden                = [];
         $columns               = $this->get_columns();
@@ -374,6 +401,7 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
+     * Extra infos on top or bottom of the table
      *
      * @since   1.0.0
      * @return  void
