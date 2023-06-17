@@ -17,7 +17,7 @@ $nu_text = __( "Add New", "woo_ds_shopkeeper" );
 ?>
 
 <section>
-	<div class="wrap" id="dsm-users-list-table" >
+	<div class="wrap-dsm" id="dsm-users-list-table" >
 		<h2 class="wp-heading-inline" style="display:inline;" >
 			<?php _e( "Suppliers", "woo_ds_shopkeeper" ); ?>
 		</h2>
