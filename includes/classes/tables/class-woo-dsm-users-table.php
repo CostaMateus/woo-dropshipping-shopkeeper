@@ -432,7 +432,69 @@ class DSM_Users_table extends \WP_List_Table
      */
     public function process_b_a_import()
     {
+        $users = $_POST[ "users" ];
 
+        if ( !empty( $users ) )
+        {
+            foreach ( $users as $user_id )
+            {
+                $user     = get_user_by( "id", $user_id );
+
+                $url      = get_user_meta( $user->ID, "_dsm_url"     , true );
+                $secret   = get_user_meta( $user->ID, "_dsm_secret"  , true );
+                $secret_s = get_user_meta( $user->ID, "_dsm_secret_s", true );
+
+                if ( !$url || !$secret || !$secret_s ) continue;
+
+                /**
+                 * TODO retirar index.php
+                 */
+                $url      = "{$url}/index.php/wp-json/dsm/v1/products";
+
+                $email    = get_option( "_dsm_email_general", true );
+                $email    = ( !empty( $email ) && is_email( $email ) ) ? $email : get_bloginfo( "admin_email" );
+
+                $args     = [
+                    "headers" => [
+                        "_dsm_email"      => $email,
+                        "_dsm_supplier"   => $secret_s,
+                        "_dsm_shopkeeper" => $secret,
+                    ]
+                ];
+
+                $response = wp_remote_get( $url, $args );
+                $data     = json_decode( $response[ "body" ] );
+
+                echo "<pre>";
+                print_r( $data );
+                echo "</pre>";
+                exit();
+
+                $products = $data->data;
+
+                // foreach ( $products as $product ) {}
+
+                /**
+                 * Disable permissions check locally
+                 */
+                add_filter( "woocommerce_rest_check_permissions", "__return_true" );
+
+                $request  = new \WP_REST_Request( "POST", "/wc/v3/products" );
+                $request->set_body( $products[ 0 ] );
+
+                $response = rest_do_request( $request );
+                $aux      = rest_get_server()->response_to_data( $response, false );
+
+                echo "<pre>";
+                print_r( $response );
+                echo "</pre>";
+                echo "<br>==============================================<br>";
+                echo "<pre>";
+                print_r( $aux );
+                echo "</pre>";
+                exit();
+            }
+        }
     }
 
     /**
