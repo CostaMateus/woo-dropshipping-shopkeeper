@@ -114,7 +114,7 @@ class Dropshipping_Shopkeeper
         $args   = [
             "limit"        => -1,
             "status"       => [ "processing" ],
-            "meta_key"     => "_woo_ds_supplier_status_shipped",
+            "meta_key"     => "_dsm_supplier_status_shipped",
             "meta_compare" => "EXISTS",
         ];
 
@@ -153,7 +153,7 @@ class Dropshipping_Shopkeeper
 
 			if ( !$order ) continue;
 
-			$order->update_meta_data( "_woo_ds_supplier_status_shipped", true );
+			$order->update_meta_data( "_dsm_supplier_status_shipped", true );
 			$order->update_status( "processing" );
 			$order->save();
         }
@@ -252,8 +252,8 @@ class Dropshipping_Shopkeeper
 	 */
 	public function add_classes()
 	{
-		require_once( dirname( self::FILE ) . "/includes/classes/class-woo-dsm-products-table.php" );
-		require_once( dirname( self::FILE ) . "/includes/classes/class-woo-dsm-users-table.php"    );
+		require_once( dirname( self::FILE ) . "/includes/classes/tables/class-woo-dsm-products-table.php" );
+		require_once( dirname( self::FILE ) . "/includes/classes/tables/class-woo-dsm-users-table.php"    );
 	}
 
 	/**
