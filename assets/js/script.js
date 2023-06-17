@@ -51,6 +51,8 @@
             return false;
         } );
 
+        // =========================================================
+
         $( "#doaction"  ).click( function ( e ) {
             const action = $( "#bulk-action-selector-top"    ).val();
             preventSubmitBulkActions( e, action );
@@ -106,5 +108,12 @@
                 $( "#dsm-users-list-table-form" ).submit();
             }
         }
+
+        // =========================================================
+
+        $( "#dsm-general-form" ).on( "submit", function() {
+            $( "#dsm-modal-load" ).removeClass( "dsm-d-none" );
+        } );
+
     } );
 }( jQuery ) );
