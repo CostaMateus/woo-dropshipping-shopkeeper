@@ -213,19 +213,21 @@ class Dropshipping_Shopkeeper
 	 */
     public function add_actions()
     {
-		add_action( "init",                     [ $this, "load_rest_api"             ]     );
-        add_action( "init",                     [ $this, "add_custom_order_status"   ]     );
+		add_action( "init",                        [ $this, "load_rest_api"             ]     );
+        add_action( "init",                        [ $this, "add_custom_order_status"   ]     );
 
-		add_action( "admin_menu",               [ $this, "add_admin_menu"            ], 9  );
-        add_action( "admin_enqueue_scripts",    [ $this, "add_admin_style_script"    ]     );
+		add_action( "admin_menu",                  [ $this, "add_admin_menu"            ], 9  );
+        add_action( "admin_enqueue_scripts",       [ $this, "add_admin_style_script"    ]     );
 
-		add_action( "show_user_profile",        [ $this, "extra_profile_fields"      ], 12 );
-		add_action( "edit_user_profile",        [ $this, "extra_profile_fields"      ], 12 );
+		add_action( "show_user_profile",           [ $this, "extra_profile_fields"      ], 12 );
+		add_action( "edit_user_profile",           [ $this, "extra_profile_fields"      ], 12 );
 
-		add_action( "personal_options_update",  [ $this, "save_extra_profile_fields" ]     );
-		add_action( "edit_user_profile_update", [ $this, "save_extra_profile_fields" ]     );
+		add_action( "personal_options_update",     [ $this, "save_extra_profile_fields" ]     );
+		add_action( "edit_user_profile_update",    [ $this, "save_extra_profile_fields" ]     );
 
-		add_action( "wp_ajax_generate_secret",  [ $this, "generate_secret"           ]     );
+		add_action( "wp_ajax_generate_secret",     [ $this, "generate_secret"           ]     );
+
+		add_action( "admin_post_dsm_save_general", [ $this, "save_general_tab_settings" ]     );
     }
 
 	/**
@@ -569,6 +571,9 @@ class Dropshipping_Shopkeeper
 
 		$tab  = isset( $_GET[ "tab" ] ) ? $_GET[ "tab" ] : "general";
 
+		if ( $tab == "general" )
+			$email_general = get_option( "_dsm_email_general", true );
+
 		if ( isset( $_GET[ "error_message" ] ) )
 		{
 			add_action( "admin_notices", [ $this, "admin_settings_messages" ] );
@@ -678,5 +683,33 @@ class Dropshipping_Shopkeeper
 
 			return wp_send_json_success( $secret );
 		}
+	}
+
+	public static function save_general_tab_settings()
+	{
+        if ( isset( $_POST[ "_wpnonce" ] ) && !empty( $_POST[ "_wpnonce" ] ) )
+        {
+            $nonce = htmlspecialchars( $_POST[ "_wpnonce" ] );
+
+            if ( !wp_verify_nonce( $nonce, $_POST[ "action" ] ) )
+				wp_die( "Nope! Security check failed!" );
+        }
+
+		/**
+		 * Update DSM email general
+		 */
+		if ( isset( $_POST[ "dsm_email_general" ] ) && !empty( $_POST[ "dsm_email_general" ] ) )
+			update_option( "_dsm_email_general", $_POST[ "dsm_email_general" ] );
+
+
+		$url = "page=" . self::DOMAIN;
+
+		if ( isset( $_POST[ "_wp_http_referer" ] ) && !empty( $_POST[ "_wp_http_referer" ] ) )
+			$url = explode( "?", $_POST[ "_wp_http_referer" ] )[ 1 ];
+
+		$url = admin_url( "admin.php?{$url}" );
+
+		wp_redirect( $url );
+		exit;
 	}
 }
