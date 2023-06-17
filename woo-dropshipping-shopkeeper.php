@@ -465,7 +465,7 @@ class Dropshipping_Shopkeeper
 	}
 
 	/**
-	 * Adds 'DSM Key' column header to 'Users' page immediately after 'Role' column.
+	 * Adds 'DSM Keys' column header to 'Users' page immediately after 'Role' column.
 	 *
 	 * @since 	1.0.0
 	 * @param 	array 	$columns
@@ -480,10 +480,10 @@ class Dropshipping_Shopkeeper
 			foreach ( $columns as $column_name => $column_info )
 			{
 				$new_columns[ $column_name ] = $column_info;
-				$name                        = self::DOMAIN . "_user_key";
+				$name                        = self::DOMAIN . "_user_keys";
 
 				if ( "role" === $column_name )
-					$new_columns[ $name ] = "DSM Key";
+					$new_columns[ $name ] = "DSM Keys";
 			}
 
 			return $new_columns;
@@ -493,7 +493,7 @@ class Dropshipping_Shopkeeper
 	}
 
 	/**
-	 * Adds 'DSM Key' column content to 'Users' page immediately after 'Role' column.
+	 * Adds 'DSM Keys' column content to 'Users' page immediately after 'Role' column.
 	 *
 	 * @since 	1.0.0
 	 * @param 	array 	$column name of column being displayed
@@ -502,7 +502,7 @@ class Dropshipping_Shopkeeper
 	{
 		if ( isset( $_GET[ "role" ] ) && $_GET[ "role" ] === "supplier" )
 		{
-			$name = self::DOMAIN . "_user_key";
+			$name = self::DOMAIN . "_user_keys";
 
 			if ( $name === $column )
 			{
@@ -572,7 +572,10 @@ class Dropshipping_Shopkeeper
 		$tab  = isset( $_GET[ "tab" ] ) ? $_GET[ "tab" ] : "general";
 
 		if ( $tab == "general" )
-			$email_general = get_option( "_dsm_email_general", true );
+		{
+			$email_general = get_option( "_dsm_email_general",      true );
+			$categories    = get_option( "_dsm_categories_general", true );
+		}
 
 		if ( isset( $_GET[ "error_message" ] ) )
 		{
@@ -701,6 +704,11 @@ class Dropshipping_Shopkeeper
 		if ( isset( $_POST[ "dsm_email_general" ] ) && !empty( $_POST[ "dsm_email_general" ] ) )
 			update_option( "_dsm_email_general", $_POST[ "dsm_email_general" ] );
 
+		/**
+		 * Update DSM categories general
+		 */
+		if ( isset( $_POST[ "dsm_categories_general" ] ) && !empty( $_POST[ "dsm_categories_general" ] ) )
+			update_option( "_dsm_categories_general", $_POST[ "dsm_categories_general" ] );
 
 		$url = "page=" . self::DOMAIN;
 
