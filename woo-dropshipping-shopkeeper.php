@@ -609,6 +609,13 @@ class Dropshipping_Shopkeeper
 
 				switch ( $user_data[ "c" ] )
 				{
+					case "MISS":   // users_table
+						$message = sprintf(
+							__( "Missing settings for supplier %1\$s (%2\$s).", "woo_ds_shopkeeper" ),
+							$user_data[ "u" ],
+							$user_id
+						);
+					break;
 					case "WRG":   // users_table / wp_remote_get
 						$message = __( "Internal failure, try again!", "woo_ds_shopkeeper" );
 					break;
@@ -616,10 +623,18 @@ class Dropshipping_Shopkeeper
 						$message = __( "Invalid call, try again!", "woo_ds_shopkeeper" );
 					break;
 					case "DRPIE": // users_table / dsm_rest_products_v1_invalid_email
-						$message = __( "Account not found at supplier ({$user_data[ "u" ]})! Check with him, if the credentials were properly registered.", "woo_ds_shopkeeper" );
+						$message = sprintf(
+							__( "Account not found at supplier %1\$s (%2\$s).<br>Check with him, if the credentials were properly registered.", "woo_ds_shopkeeper" ),
+							$user_data[ "u" ],
+							$user_id
+						);
 					break;
 					case "DRPIS": // users_table / dsm_rest_products_v1_invalid_secret
-						$message = __( "Invalid credentials ({$user_data[ "u" ]})! Check the configured secret keys.", "woo_ds_shopkeeper" );
+						$message = sprintf(
+							__( "Invalid credentials for supplier %1\$s (%2\$s).<br>Check the configured secret keys.", "woo_ds_shopkeeper" ),
+							$user_data[ "u" ],
+							$user_id
+						);
 					break;
 
 					default:
