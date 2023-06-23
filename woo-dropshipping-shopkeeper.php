@@ -87,6 +87,29 @@ class Dropshipping_Shopkeeper
     }
 
 	/**
+	 * Log
+	 *
+	 * @since 	1.0.0
+	 * @param 	string 		$message
+	 * @param 	boolean 	$is_error
+	 * @return 	void
+	 */
+	public static function log( $message, $is_error = false )
+	{
+		$debug = get_option( "_dsm_debug" );
+		$log   = ( function_exists( "wc_get_logger" ) ) ? wc_get_logger() : new WC_Logger();
+
+		if ( $debug )
+		{
+			$log->add( self::DOMAIN, $message );
+		}
+		else if ( $is_error )
+		{
+			$log->add( self::DOMAIN, $message );
+		}
+	}
+
+	/**
 	 * Return an instance of this class.
 	 *
 	 * @since 	1.0.0
@@ -364,12 +387,12 @@ class Dropshipping_Shopkeeper
 		{
 			$c++;
 			$s = microtime( true );
-			password_hash( "woo_ds_hash_cost", PASSWORD_BCRYPT, [ "cost" => $c ] );
+			password_hash( "_dsm_hash_cost", PASSWORD_BCRYPT, [ "cost" => $c ] );
 			$e = microtime( true );
 		}
 		while ( ( $e - $s ) < $t );
 
-		add_option( "woo_ds_hash_cost", $c, "", "no" );
+		add_option( "_dsm_hash_cost", $c, "", "no" );
 	}
 
 	/**
@@ -380,7 +403,7 @@ class Dropshipping_Shopkeeper
 	 */
 	public static function remove_hash()
 	{
-		delete_option( "woo_ds_hash_cost" );
+		delete_option( "_dsm_hash_cost" );
 	}
 
 	/**
@@ -576,6 +599,17 @@ class Dropshipping_Shopkeeper
 
 		$tab  = isset( $_GET[ "tab" ] ) ? $_GET[ "tab" ] : "general";
 
+		if ( $tab == "general" )
+		{
+			$date      = date( "Y-m-d" );
+			$esc_attr  = esc_attr( self::DOMAIN );
+			$sanitize  = sanitize_file_name( wp_hash( self::DOMAIN ) );
+			$admin_url = "admin.php?page=wc-status&tab=logs&log_file=$esc_attr-$date-$sanitize.log";
+			$link      = esc_url( admin_url( $admin_url ) );
+			$text      = "WooCommerce &gt Status &gt; Logs";
+			$debug     = "<a href='{$link}' target='_blank' >{$text}</a>";
+		}
+
 		if ( isset( $_GET[ "error_message" ] ) || isset( $_GET[ "warning_message" ] ) )
 		{
 			add_action( "admin_notices", [ $this, "admin_settings_messages" ], 10, 2 );
@@ -735,7 +769,7 @@ class Dropshipping_Shopkeeper
 			}
 
 			$url     = get_home_url();
-			$cost    = get_option( "woo_ds_hash_cost" );
+			$cost    = get_option( "_dsm_hash_cost" ) ?? 12;
 			$pass    = "{$user->ID}|{$user->user_email}|{$url_sp}|{$url}";
 			$secret  = password_hash( $pass, PASSWORD_BCRYPT, [ "cost" => $cost ] );
 
@@ -773,6 +807,14 @@ class Dropshipping_Shopkeeper
 			update_option( "_dsm_categories_general", true );
 		elseif ( !isset( $_POST[ "dsm_categories_general" ] ) )
 			update_option( "_dsm_categories_general", false );
+
+		/**
+		 * Update DSM debug general
+		 */
+		if ( isset( $_POST[ "dsm_debug_general" ] ) && $_POST[ "dsm_debug_general" ] === "on" )
+			update_option( "_dsm_debug", true );
+		elseif ( !isset( $_POST[ "dsm_debug_general" ] ) )
+			update_option( "_dsm_debug", false );
 
 		$url = "page=" . self::DOMAIN;
 
