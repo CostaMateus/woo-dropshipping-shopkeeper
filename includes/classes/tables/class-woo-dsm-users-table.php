@@ -9,6 +9,8 @@
 
 namespace Dropshipping_Shopkeeper\Classes\Tables;
 
+use Dropshipping_Shopkeeper\Classes\Helpers\DSM_Helper;
+
 class DSM_Users_table extends \WP_List_Table
 {
     /**
@@ -436,20 +438,28 @@ class DSM_Users_table extends \WP_List_Table
 
         if ( !empty( $users ) )
         {
+            $errors = [];
+
             foreach ( $users as $user_id )
             {
                 $user     = get_user_by( "id", $user_id );
+
+                $errors[ $user_id ] = [
+                    "e" => 0, "w" => 0, "c" => 0,
+                    "u" => $user->user_login,
+                ];
 
                 $url      = get_user_meta( $user->ID, "_dsm_url"     , true );
                 $secret   = get_user_meta( $user->ID, "_dsm_secret"  , true );
                 $secret_s = get_user_meta( $user->ID, "_dsm_secret_s", true );
 
-                if ( !$url || !$secret || !$secret_s ) continue;
+                if ( !$url || !$secret || !$secret_s )
+                {
+                    $errors[ $user_id ][ "e" ]++;
+                    $errors[ $user_id ][ "c" ] = "MISS";
+                    continue;
+                }
 
-                /**
-                 * TODO retirar index.php
-                 */
-                $url      = "{$url}/index.php/wp-json/dsm/v1/products";
 
                 $email    = get_option( "_dsm_email_general", true );
                 $email    = ( !empty( $email ) && is_email( $email ) ) ? $email : get_bloginfo( "admin_email" );
@@ -462,38 +472,130 @@ class DSM_Users_table extends \WP_List_Table
                     ]
                 ];
 
+                $url      = "{$url}/wp-json/dsm/v1/products";
+
                 $response = wp_remote_get( $url, $args );
-                $data     = json_decode( $response[ "body" ] );
 
-                echo "<pre>";
-                print_r( $data );
-                echo "</pre>";
-                exit();
+                if ( is_wp_error( $response ) )
+                {
+                    /**
+                     * TODO add log
+                     * $response->get_error_message();
+                     */
+                    $errors[ $user_id ][ "e" ]++;
+                    $errors[ $user_id ][ "c" ] = "WRG";
+                    continue;
+                }
+                else
+                {
+                    $data = json_decode( $response[ "body" ] );
 
-                $products = $data->data;
+                    if ( $data->code == "dsm_rest_cannot_view" )
+                    {
+                        // call error / no post
+                        $errors[ $user_id ][ "e" ]++;
+                        $errors[ $user_id ][ "c" ] = "DRCV";
+                        continue;
+                    }
+                    else if ( $data->code == "dsm_rest_products_v1_invalid_email" )
+                    {
+                        // config error / account not created
+                        $errors[ $user_id ][ "e" ]++;
+                        $errors[ $user_id ][ "c" ] = "DRPIE";
+                        continue;
+                    }
+                    else if ( $data->code == "dsm_rest_products_v1_invalid_secret" )
+                    {
+                        // config error / invalid access key
+                        $errors[ $user_id ][ "e" ]++;
+                        $errors[ $user_id ][ "c" ] = "DRPIS";
+                        continue;
+                    }
+                }
 
-                // foreach ( $products as $product ) {}
+                $products = [];
+
+                try
+                {
+                    foreach ( $data->data as $key => $product )
+                    {
+                        if ( empty( $product->sku ) ) continue;
+
+                        $products[] = DSM_Helper::translate_product( $product );
+                    }
+                }
+                catch ( \Exception $e )
+                {
+                    /**
+                     * TODO add log
+                     * $e->getMessage();
+                     */
+                    $errors[ $user_id ][ "e" ]++;
+                    $errors[ $user_id ][ "c" ] = "EXCP";
+                    continue;
+                }
 
                 /**
                  * Disable permissions check locally
                  */
                 add_filter( "woocommerce_rest_check_permissions", "__return_true" );
 
-                $request  = new \WP_REST_Request( "POST", "/wc/v3/products" );
-                $request->set_body( $products[ 0 ] );
+                $request    = new \WP_REST_Request( "POST", "/wc/v3/products" );
+                $controller = new \WC_REST_Products_Controller;
 
-                $response = rest_do_request( $request );
-                $aux      = rest_get_server()->response_to_data( $response, false );
+                foreach ( $products as $prd )
+                {
+                    $request->set_body_params( $prd );
+                    $response = $controller->create_item( $request );
 
-                echo "<pre>";
-                print_r( $response );
-                echo "</pre>";
-                echo "<br>==============================================<br>";
-                echo "<pre>";
-                print_r( $aux );
-                echo "</pre>";
-                exit();
+                    if ( is_wp_error( $response ) )
+                    {
+                        /**
+                         * TODO add log
+                         * erro on creating product
+                         */
+                        $errors[ $user_id ][ "w" ]++;
+                        continue;
+                    }
+
+                    $product = wc_get_product( $response->data[ "id" ] );
+                    $product->update_meta_data( "_dsm_supplier",               $user_id                );
+                    $product->update_meta_data( "_dsm_supplier_regular_price", $product->regular_price );
+                    $product->update_meta_data( "_dsm_supplier_sale_price",    $product->sale_price    );
+                    $product->update_meta_data( "_dsm_supplier_sku",           $product->sku           );
+
+                    $prefix  = get_user_meta( $user->ID, "_dsm_sku_prefix" , true );
+
+                    try
+                    {
+                        if ( $prefix )
+                            $product->set_sku( $prefix . $product->sku );
+                    }
+                    catch ( \Exception $e )
+                    {
+                        /**
+                         * TODO add log
+                         * erro on setting sku
+                         */
+                        $product->delete();
+                        $errors[ $user_id ][ "w" ]++;
+                        continue;
+                    }
+
+                    $product->save();
+                }
             }
+
+            $warning = max( array_column( $errors, "w" ) ) == 0;
+            $error   = max( array_column( $errors, "e" ) ) == 0;
+
+            if ( $warning && $error )
+                return $this->throw_response( "success", $errors );
+
+            else if ( !$warning )
+                return $this->throw_response( "warning", $errors );
+
+            return $this->throw_response( "error", $errors );
         }
     }
 
@@ -557,5 +659,14 @@ class DSM_Users_table extends \WP_List_Table
         if ( !empty( $users ) )
             foreach ( $users as $user_id )
                 wp_delete_user( $user_id );
+    }
+
+    private function throw_response( $type, $errors )
+    {
+        $data = http_build_query( [ "data" => $errors ] );
+
+        $url  = admin_url( "admin.php?page=woo_ds_shopkeeper&tab=suppliers&{$type}_message=DRPWE&{$data}" );
+        wp_redirect( $url );
+        return;
     }
 }
