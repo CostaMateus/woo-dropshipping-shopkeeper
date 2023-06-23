@@ -498,7 +498,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @param 	array 	$column name of column being displayed
 	 */
-	function add_column_content_user( $val, $column, $user_id )
+	public function add_column_content_user( $val, $column, $user_id )
 	{
 		if ( isset( $_GET[ "role" ] ) && $_GET[ "role" ] === "supplier" )
 		{
@@ -636,6 +636,9 @@ class Dropshipping_Shopkeeper
 		if ( $empty || $verify ) return;
 
 		if ( !current_user_can( "edit_user", $user_id ) ) return false;
+
+		if ( isset( $_POST[ "woo_ds_sku_prefix" ] ) && !empty( $_POST[ "woo_ds_sku_prefix" ] ) )
+			update_user_meta( $user_id, "_dsm_sku_prefix", $_POST[ "woo_ds_sku_prefix" ] );
 
 		if ( isset( $_POST[ "woo_ds_website" ] ) && !empty( $_POST[ "woo_ds_website" ] ) )
 			update_user_meta( $user_id, "_dsm_url", $_POST[ "woo_ds_website" ] );
