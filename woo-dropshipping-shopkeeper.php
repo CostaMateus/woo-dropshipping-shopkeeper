@@ -498,7 +498,10 @@ class Dropshipping_Shopkeeper
 	 * Adds 'DSM Keys' column content to 'Users' page immediately after 'Role' column.
 	 *
 	 * @since 	1.0.0
-	 * @param 	array 	$column name of column being displayed
+	 * @param 	mixed 	$val
+	 * @param 	string 	$column
+	 * @param 	string 	$user_id
+	 * @return 	mixed 	$val
 	 */
 	public function add_column_content_user( $val, $column, $user_id )
 	{
@@ -573,16 +576,16 @@ class Dropshipping_Shopkeeper
 
 		$tab  = isset( $_GET[ "tab" ] ) ? $_GET[ "tab" ] : "general";
 
-		if ( $tab == "general" )
+		if ( isset( $_GET[ "error_message" ] ) || isset( $_GET[ "warning_message" ] ) )
 		{
-			$email_general = get_option( "_dsm_email_general",      true );
-			$categories    = get_option( "_dsm_categories_general", true );
+			add_action( "admin_notices", [ $this, "admin_settings_messages" ], 10, 2 );
+			do_action( "admin_notices", "error", $_GET[ "data" ] );
 		}
 
-		if ( isset( $_GET[ "error_message" ] ) )
+		if ( isset( $_GET[ "success_message" ] ) )
 		{
-			add_action( "admin_notices", [ $this, "admin_settings_messages" ] );
-			do_action( "admin_notices", $_GET[ "error_message" ] );
+			add_action( "admin_notices", [ $this, "admin_settings_messages" ], 10, 2 );
+			do_action( "admin_notices", "success", $_GET[ "data" ] );
 		}
 
 		require_once( dirname( self::FILE ) . "/templates/admin/settings.php" );
@@ -592,22 +595,56 @@ class Dropshipping_Shopkeeper
 	 * Handles errors and displays messages accordingly
 	 *
 	 * @since 	1.0.0
-	 * @param 	string $error_message
+	 * @param 	string 	$type
+	 * @param 	array 	$data
+	 * @return 	void
 	 */
-	public function admin_settings_messages( $error_message )
+	public function admin_settings_messages( $type, $data )
 	{
-		switch ( $error_message )
+		foreach ( $data as $user_id => $user_data )
 		{
-			case "1":
-				$message       = __( "There was an error adding this setting. Please try again. If this persists, shoot us an email.", "woo_ds_shopkeeper" );
-				$err_code      = esc_attr( "woo_ds_shopkeeper-example-setting" );
-				$setting_field = "woo_ds_shopkeeper_example_setting";
-			break;
+			if ( $user_data[ "e" ] != 0 )
+			{
+				$type = "error";
+
+				switch ( $user_data[ "c" ] )
+				{
+					case "WRG":   // users_table / wp_remote_get
+						$message = __( "Internal failure, try again!", "woo_ds_shopkeeper" );
+					break;
+					case "DRCV":  // users_table / dsm_rest_cannot_view
+						$message = __( "Invalid call, try again!", "woo_ds_shopkeeper" );
+					break;
+					case "DRPIE": // users_table / dsm_rest_products_v1_invalid_email
+						$message = __( "Account not found at supplier ({$user_data[ "u" ]})! Check with him, if the credentials were properly registered.", "woo_ds_shopkeeper" );
+					break;
+					case "DRPIS": // users_table / dsm_rest_products_v1_invalid_secret
+						$message = __( "Invalid credentials ({$user_data[ "u" ]})! Check the configured secret keys.", "woo_ds_shopkeeper" );
+					break;
+
+					default:
+						$message = __( "Internal failure!", "woo_ds_shopkeeper" );
+					break;
+				}
+			}
+			elseif ( $user_data[ "w" ] != 0 )
+			{
+				$type    = "warning";
+				$message = sprintf(
+					__( "Could not import %1\$s products from supplier %2\$s (%3\$s)!<br>Check the logs for more details.", "woo_ds_shopkeeper" ),
+					$user_data[ "w" ],
+					$user_data[ "u" ],
+					$user_id
+				);
+			}
+			else
+			{
+				$type    = "success";
+				$message = __( "Products successfully imported!", "woo_ds_shopkeeper" );
+			}
+
+			echo "<div class='notice notice-{$type} is-dismissible'><p>{$message}</p></div>";
 		}
-
-		$type = "error";
-
-		add_settings_error( $setting_field, $err_code, $message, $type );
 	}
 
 	/**
@@ -693,6 +730,11 @@ class Dropshipping_Shopkeeper
 		}
 	}
 
+	/**
+	 * Save general tab settings
+	 *
+	 * @return void
+	 */
 	public static function save_general_tab_settings()
 	{
         if ( isset( $_POST[ "_wpnonce" ] ) && !empty( $_POST[ "_wpnonce" ] ) )
