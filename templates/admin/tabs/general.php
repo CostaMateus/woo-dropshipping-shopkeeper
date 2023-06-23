@@ -48,6 +48,19 @@ defined( "ABSPATH" ) || exit;
 							<p class="description" ><?php _e( "If not, all products will be imported without categories.", "woo_ds_shopkeeper" ); ?></p>
 						</td>
 					</tr>
+					<tr valign="top" >
+						<th scope="row" class="titledesc" >
+							<label for="dsm_debug_general" >
+								<?php _e( "Debug Log", "woo_ds_shopkeeper" ); ?>
+							</label>
+						</th>
+						<td class="forminp" >
+							<input id="dsm_debug_general" class="input-text regular-input" type="checkbox" name="dsm_debug_general" <?php echo ( !empty( get_option( "_dsm_debug", true ) ) ) ? "checked" : ""; ?> >
+							<?php _e( "Enable / Disable", "woo_ds_shopkeeper" ); ?>
+							<p class="description" ><?php _e( "If enabled, will generate detailed log. If not, it will only generate a crash log.", "woo_ds_shopkeeper" ); ?></p>
+							<p class="description" ><?php echo $debug; ?></p>
+						</td>
+					</tr>
 				</tbody>
 			</table>
 
