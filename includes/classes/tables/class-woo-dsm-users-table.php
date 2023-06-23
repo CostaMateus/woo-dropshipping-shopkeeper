@@ -572,7 +572,7 @@ class DSM_Users_table extends \WP_List_Table
                         $log = "ERROR - Supplier ID {$user_id} - error_set_sku - " . $e->getMessage();
                         \Dropshipping_Shopkeeper::log( $log, true );
 
-                        $product->delete();
+                        $product->delete( true );
                         $errors[ $user_id ][ "w" ]++;
                         continue;
                     }
@@ -589,12 +589,12 @@ class DSM_Users_table extends \WP_List_Table
             $error   = max( array_column( $errors, "e" ) ) == 0;
 
             if ( $warning && $error )
-                return $this->throw_response( "success", $errors );
+                return $this->redirect( "success", $errors );
 
             else if ( !$warning )
-                return $this->throw_response( "warning", $errors );
+                return $this->redirect( "warning", $errors );
 
-            return $this->throw_response( "error", $errors );
+            return $this->redirect( "error", $errors );
         }
     }
 
@@ -612,6 +612,8 @@ class DSM_Users_table extends \WP_List_Table
         {
             foreach ( $users as $user_id )
             {
+                $count = 0;
+
                 foreach ( $this->products as $product )
                 {
                     $meta_id = $product->get_meta( "_dsm_supplier" );
@@ -636,9 +638,14 @@ class DSM_Users_table extends \WP_List_Table
                             }
                         }
 
-                        $product->delete( true );
+                        $deleted = $product->delete( true );
+
+                        if ( $deleted ) $count++;
                     }
                 }
+
+                $log   = "INFO - Supplier ID {$user_id} - deleted {$count} products";
+                \Dropshipping_Shopkeeper::log( $log );
             }
         }
     }
@@ -656,11 +663,26 @@ class DSM_Users_table extends \WP_List_Table
         $users = $_POST[ "users" ];
 
         if ( !empty( $users ) )
+        {
             foreach ( $users as $user_id )
+            {
                 wp_delete_user( $user_id );
+
+                $log = "INFO - Deleted supplier ID {$user_id}";
+                \Dropshipping_Shopkeeper::log( $log );
+            }
+        }
     }
 
-    private function throw_response( $type, $errors )
+    /**
+     * Response for process
+     *
+     * @since   1.0.0
+     * @param   string  $type
+     * @param   array   $errors
+     * @return  void
+     */
+    private function redirect( $type, $errors )
     {
         $data = http_build_query( [ "data" => $errors ] );
 
