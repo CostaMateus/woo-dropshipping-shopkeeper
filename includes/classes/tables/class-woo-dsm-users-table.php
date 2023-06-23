@@ -460,7 +460,6 @@ class DSM_Users_table extends \WP_List_Table
                     continue;
                 }
 
-
                 $email    = get_option( "_dsm_email_general", true );
                 $email    = ( !empty( $email ) && is_email( $email ) ) ? $email : get_bloginfo( "admin_email" );
 
@@ -478,10 +477,9 @@ class DSM_Users_table extends \WP_List_Table
 
                 if ( is_wp_error( $response ) )
                 {
-                    /**
-                     * TODO add log
-                     * $response->get_error_message();
-                     */
+                    $log = "ERROR - Supplier ID {$user_id} - api_query_error - " . $response->get_error_message();
+                    \Dropshipping_Shopkeeper::log( $log, true );
+
                     $errors[ $user_id ][ "e" ]++;
                     $errors[ $user_id ][ "c" ] = "WRG";
                     continue;
@@ -517,7 +515,7 @@ class DSM_Users_table extends \WP_List_Table
 
                 try
                 {
-                    foreach ( $data->data as $key => $product )
+                    foreach ( $data->data as $product )
                     {
                         if ( empty( $product->sku ) ) continue;
 
@@ -526,10 +524,9 @@ class DSM_Users_table extends \WP_List_Table
                 }
                 catch ( \Exception $e )
                 {
-                    /**
-                     * TODO add log
-                     * $e->getMessage();
-                     */
+                    $log = "ERROR - Supplier ID {$user_id} - translate_product - " . $e->getMessage();
+                    \Dropshipping_Shopkeeper::log( $log, true );
+
                     $errors[ $user_id ][ "e" ]++;
                     $errors[ $user_id ][ "c" ] = "EXCP";
                     continue;
@@ -550,10 +547,9 @@ class DSM_Users_table extends \WP_List_Table
 
                     if ( is_wp_error( $response ) )
                     {
-                        /**
-                         * TODO add log
-                         * erro on creating product
-                         */
+                        $log = "ERROR - Supplier ID {$user_id} - error_create_product - " . $response->get_error_message();
+                        \Dropshipping_Shopkeeper::log( $log, true );
+
                         $errors[ $user_id ][ "w" ]++;
                         continue;
                     }
@@ -573,10 +569,9 @@ class DSM_Users_table extends \WP_List_Table
                     }
                     catch ( \Exception $e )
                     {
-                        /**
-                         * TODO add log
-                         * erro on setting sku
-                         */
+                        $log = "ERROR - Supplier ID {$user_id} - error_set_sku - " . $e->getMessage();
+                        \Dropshipping_Shopkeeper::log( $log, true );
+
                         $product->delete();
                         $errors[ $user_id ][ "w" ]++;
                         continue;
@@ -584,6 +579,10 @@ class DSM_Users_table extends \WP_List_Table
 
                     $product->save();
                 }
+
+                $count = count( $products ) - $errors[ $user_id ][ "w" ];
+                $log   = "INFO - Supplier ID {$user_id} - imported {$count} products";
+                \Dropshipping_Shopkeeper::log( $log );
             }
 
             $warning = max( array_column( $errors, "w" ) ) == 0;
