@@ -713,9 +713,9 @@ class Dropshipping_Shopkeeper
 		 * Update DSM categories general
 		 */
 		if ( isset( $_POST[ "dsm_categories_general" ] ) && $_POST[ "dsm_categories_general" ] === "on" )
-		update_option( "_dsm_categories_general", true );
-	elseif ( !isset( $_POST[ "dsm_categories_general" ] ) )
-		update_option( "_dsm_categories_general", false );
+			update_option( "_dsm_categories_general", true );
+		elseif ( !isset( $_POST[ "dsm_categories_general" ] ) )
+			update_option( "_dsm_categories_general", false );
 
 		$url = "page=" . self::DOMAIN;
 
