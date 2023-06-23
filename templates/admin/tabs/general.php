@@ -30,7 +30,7 @@ defined( "ABSPATH" ) || exit;
 							</label>
 						</th>
 						<td class="forminp" >
-							<input id="dsm_email_general" class="input-text regular-input" type="email" name="dsm_email_general" value="<?php echo $email_general; ?>" >
+							<input id="dsm_email_general" class="input-text regular-input" type="email" name="dsm_email_general" value="<?php echo get_option( "_dsm_email_general", true ); ?>" >
 							<p class="description" ><?php _e( "The supplier will create an account with this email. And it will be used to communicate with the supplier. If you leave it blank, the WP default will be used, inform the suppplier.", "woo_ds_shopkeeper" ); ?></p>
 							<p class="description" ><?php echo __( "Default: ", "woo_ds_shopkeeper" ) . get_bloginfo( "admin_email" ); ?></p>
 						</td>
@@ -42,10 +42,10 @@ defined( "ABSPATH" ) || exit;
 							</label>
 						</th>
 						<td class="forminp" >
-							<input id="dsm_categories_general" class="input-text regular-input" type="checkbox" name="dsm_categories_general"
-								value="<?php echo $categories_general; ?>" <?php echo ( !empty( $categories_general ) ) ? "checked" : ""; ?> >
+							<input id="dsm_categories_general" class="input-text regular-input" type="checkbox" name="dsm_categories_general" <?php echo ( !empty( get_option( "_dsm_categories_general", true ) ) ) ? "checked" : ""; ?> >
 							<?php _e( "Enable / Disable", "woo_ds_shopkeeper" ); ?>
-							<p class="description" ><?php _e( "If enabled, it imports the product categories of each supplier.", "woo_ds_shopkeeper" ); ?></p>
+							<p class="description" ><?php _e( "If enabled, it imports products from each supplier with their respective categories. If a category does not exist, it will be created at import time.", "woo_ds_shopkeeper" ); ?></p>
+							<p class="description" ><?php _e( "If not, all products will be imported without categories.", "woo_ds_shopkeeper" ); ?></p>
 						</td>
 					</tr>
 				</tbody>
