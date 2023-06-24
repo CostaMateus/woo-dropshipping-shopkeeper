@@ -115,5 +115,39 @@
             $( "#dsm-modal-load" ).removeClass( "dsm-d-none" );
         } );
 
+        $( "#bulk-action-selector-top"    ).on( "change", function() {
+            show_bulk_actions_message( $( this ).val() );
+        } );
+        $( "#bulk-action-selector-bottom" ).on( "change", function() {
+            show_bulk_actions_message( $( this ).val() );
+        } );
+
+        function show_bulk_actions_message( val )
+        {
+            $( ".dsm-bulkactions-sync"         ).addClass( "dsm-d-none" );
+            $( ".dsm-bulkactions-import"       ).addClass( "dsm-d-none" );
+            $( ".dsm-bulkactions-del-products" ).addClass( "dsm-d-none" );
+            $( ".dsm-bulkactions-del-users"    ).addClass( "dsm-d-none" );
+
+            switch ( val )
+            {
+                case "sync":
+                    $( ".dsm-bulkactions-sync"         ).removeClass( "dsm-d-none" );
+                break;
+
+                case "import":
+                    $( ".dsm-bulkactions-import"       ).removeClass( "dsm-d-none" );
+                break;
+
+                case "del_products":
+                    $( ".dsm-bulkactions-del-products" ).removeClass( "dsm-d-none" );
+                break;
+
+                case "del_users":
+                    $( ".dsm-bulkactions-del-users"    ).removeClass( "dsm-d-none" );
+                break;
+            }
+        }
+
     } );
 }( jQuery ) );

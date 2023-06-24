@@ -177,3 +177,20 @@ table.wp-list-table .column-price {
 .dsm-form .form-table td .description {
     width: 500px;
 }
+
+.dsm-my-5 {
+    margin-top: 5px !important;
+    margin-bottom: 5px !important;
+}
+.dsm-fw-bold {
+    font-weight: bold !important;
+}
+.dsm-text-danger {
+    color: #e65054 !important;
+}
+.dsm-float-left {
+    float: left !important;
+}
+.dsm-d-none {
+    display: none !important;
+}
