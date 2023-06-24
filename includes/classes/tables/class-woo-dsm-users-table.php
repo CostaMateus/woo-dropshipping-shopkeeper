@@ -410,11 +410,10 @@ class DSM_Users_table extends \WP_List_Table
      */
     public function extra_tablenav( $which )
     {
-        // if ( $which == "top" )
-        //     echo"Hello, I'm before the table";
-
+        // if ( $which == "top"    )
         // if ( $which == "bottom" )
-        //     echo"Hi, I'm after the table";
+
+        require( dirname( \Dropshipping_Shopkeeper::FILE ) . "/templates/notices/message.php" );
     }
 
     /**
@@ -542,6 +541,11 @@ class DSM_Users_table extends \WP_List_Table
 
                 foreach ( $products as $prd )
                 {
+                    /**
+                     * TODO testar se SKU já é cadastrados
+                     * Se sim, não importar, mas atualizar preço e estoque
+                     */
+
                     $request->set_body_params( $prd );
                     $response = $controller->create_item( $request );
 
