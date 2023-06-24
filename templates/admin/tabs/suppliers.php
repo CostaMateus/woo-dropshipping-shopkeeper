@@ -21,7 +21,7 @@ $nu_text = __( "Add New", "woo_ds_shopkeeper" );
 		<h2 class="wp-heading-inline" style="display:inline;" >
 			<?php _e( "Suppliers", "woo_ds_shopkeeper" ); ?>
 		</h2>
-		<a class="page-title-action" href="<?php echo $new_user; ?>" >
+		<a class="page-title-action" href="<?php echo $nu_url; ?>" >
 			<?php echo $nu_text; ?>
 		</a>
 
