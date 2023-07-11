@@ -444,8 +444,11 @@ class DSM_Users_table extends \WP_List_Table
                 $user     = get_user_by( "id", $user_id );
 
                 $errors[ $user_id ] = [
-                    "e" => 0, "w" => 0, "c" => 0,
-                    "u" => $user->user_login,
+                    "errors"   => 0,
+                    "warnings" => 0,
+                    "code"     => 0,
+                    "count"    => 0,
+                    "user"     => $user->user_login,
                 ];
 
                 $url      = get_user_meta( $user->ID, "_dsm_url"     , true );
@@ -454,8 +457,8 @@ class DSM_Users_table extends \WP_List_Table
 
                 if ( !$url || !$secret || !$secret_s )
                 {
-                    $errors[ $user_id ][ "e" ]++;
-                    $errors[ $user_id ][ "c" ] = "MISS";
+                    $errors[ $user_id ][ "errors" ]++;
+                    $errors[ $user_id ][ "code"   ] = "MISS";
                     continue;
                 }
 
@@ -476,11 +479,12 @@ class DSM_Users_table extends \WP_List_Table
 
                 if ( is_wp_error( $response ) )
                 {
-                    $log = "ERROR - Supplier ID {$user_id} - api_query_error - " . $response->get_error_message();
+                    $log  = "ERROR - Supplier ID {$user_id} - api_query_error - " . $response->get_error_message();
+                    $log .= " - " . json_encode( [ "url" => $url ] );
                     \Dropshipping_Shopkeeper::log( $log, true );
 
-                    $errors[ $user_id ][ "e" ]++;
-                    $errors[ $user_id ][ "c" ] = "WRG";
+                    $errors[ $user_id ][ "errors" ]++;
+                    $errors[ $user_id ][ "code"   ] = "WRG";
                     continue;
                 }
                 else
@@ -490,22 +494,22 @@ class DSM_Users_table extends \WP_List_Table
                     if ( $data->code == "dsm_rest_cannot_view" )
                     {
                         // call error / no post
-                        $errors[ $user_id ][ "e" ]++;
-                        $errors[ $user_id ][ "c" ] = "DRCV";
+                        $errors[ $user_id ][ "errors" ]++;
+                        $errors[ $user_id ][ "code"   ] = "DRCV";
                         continue;
                     }
                     else if ( $data->code == "dsm_rest_products_v1_invalid_email" )
                     {
                         // config error / account not created
-                        $errors[ $user_id ][ "e" ]++;
-                        $errors[ $user_id ][ "c" ] = "DRPIE";
+                        $errors[ $user_id ][ "errors" ]++;
+                        $errors[ $user_id ][ "code"   ] = "DRPIE";
                         continue;
                     }
                     else if ( $data->code == "dsm_rest_products_v1_invalid_secret" )
                     {
                         // config error / invalid access key
-                        $errors[ $user_id ][ "e" ]++;
-                        $errors[ $user_id ][ "c" ] = "DRPIS";
+                        $errors[ $user_id ][ "errors" ]++;
+                        $errors[ $user_id ][ "code"   ] = "DRPIS";
                         continue;
                     }
                 }
@@ -526,8 +530,8 @@ class DSM_Users_table extends \WP_List_Table
                     $log = "ERROR - Supplier ID {$user_id} - translate_product - " . $e->getMessage();
                     \Dropshipping_Shopkeeper::log( $log, true );
 
-                    $errors[ $user_id ][ "e" ]++;
-                    $errors[ $user_id ][ "c" ] = "EXCP";
+                    $errors[ $user_id ][ "errors" ]++;
+                    $errors[ $user_id ][ "code"   ] = "EXCP";
                     continue;
                 }
 
@@ -544,6 +548,7 @@ class DSM_Users_table extends \WP_List_Table
                     /**
                      * TODO testar se SKU já é cadastrados
                      * Se sim, não importar, mas atualizar preço e estoque
+                     * wc_get_product_id_by_sku( $sku )
                      */
 
                     $request->set_body_params( $prd );
@@ -554,7 +559,7 @@ class DSM_Users_table extends \WP_List_Table
                         $log = "ERROR - Supplier ID {$user_id} - error_create_product - " . $response->get_error_message();
                         \Dropshipping_Shopkeeper::log( $log, true );
 
-                        $errors[ $user_id ][ "w" ]++;
+                        $errors[ $user_id ][ "warnings" ]++;
                         continue;
                     }
 
@@ -577,20 +582,22 @@ class DSM_Users_table extends \WP_List_Table
                         \Dropshipping_Shopkeeper::log( $log, true );
 
                         $product->delete( true );
-                        $errors[ $user_id ][ "w" ]++;
+                        $errors[ $user_id ][ "warnings" ]++;
                         continue;
                     }
 
                     $product->save();
                 }
 
-                $count = count( $products ) - $errors[ $user_id ][ "w" ];
-                $log   = "INFO - Supplier ID {$user_id} - imported {$count} products";
+                $count      = count( $products ) - $errors[ $user_id ][ "warnings" ];
+                $log        = "INFO - Supplier ID {$user_id} - imported {$count} products";
                 \Dropshipping_Shopkeeper::log( $log );
+
+                $errors[ $user_id ][ "count" ] = $count;
             }
 
-            $warning = max( array_column( $errors, "w" ) ) == 0;
-            $error   = max( array_column( $errors, "e" ) ) == 0;
+            $warning = max( array_column( $errors, "warnings" ) ) == 0;
+            $error   = max( array_column( $errors, "errors"   ) ) == 0;
 
             if ( $warning && $error )
                 return $this->redirect( "success", $errors );
