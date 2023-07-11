@@ -216,7 +216,12 @@ class DSM_Products_table extends \WP_List_Table
      */
     public function column_thumbnail( $item )
     {
-        return wp_get_attachment_image( $item->get_image_id(), [ 40, 40 ], true );
+        if ( $item->get_image_id() )
+            return wp_get_attachment_image( $item->get_image_id(), [ 40, 40 ], true );
+
+            // echo $item->get_image_id();
+        return "<img width='40' height='40' src='/wp-content/uploads/woocommerce-placeholder-150x150.png' class='attachment-40x40 size-40x40'
+            decoding='async' loading='lazy' sizes='(max-width: 40px) 100vw, 40px' >";
     }
 
     /**
