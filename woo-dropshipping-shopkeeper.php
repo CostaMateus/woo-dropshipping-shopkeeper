@@ -637,16 +637,14 @@ class Dropshipping_Shopkeeper
 	{
 		foreach ( $data as $user_id => $user_data )
 		{
-			if ( $user_data[ "e" ] != 0 )
+			if ( $user_data[ "errors" ] != 0 )
 			{
-				$type = "error";
-
-				switch ( $user_data[ "c" ] )
+				switch ( $user_data[ "code" ] )
 				{
 					case "MISS":   // users_table
 						$message = sprintf(
 							__( "Missing settings for supplier %1\$s (%2\$s).", "woo_ds_shopkeeper" ),
-							$user_data[ "u" ],
+							$user_data[ "user" ],
 							$user_id
 						);
 					break;
@@ -659,14 +657,14 @@ class Dropshipping_Shopkeeper
 					case "DRPIE": // users_table / dsm_rest_products_v1_invalid_email
 						$message = sprintf(
 							__( "Account not found at supplier %1\$s (%2\$s).<br>Check with him, if the credentials were properly registered.", "woo_ds_shopkeeper" ),
-							$user_data[ "u" ],
+							$user_data[ "user" ],
 							$user_id
 						);
 					break;
 					case "DRPIS": // users_table / dsm_rest_products_v1_invalid_secret
 						$message = sprintf(
 							__( "Invalid credentials for supplier %1\$s (%2\$s).<br>Check the configured secret keys.", "woo_ds_shopkeeper" ),
-							$user_data[ "u" ],
+							$user_data[ "user" ],
 							$user_id
 						);
 					break;
@@ -675,24 +673,35 @@ class Dropshipping_Shopkeeper
 						$message = __( "Internal failure!", "woo_ds_shopkeeper" );
 					break;
 				}
+
+				echo "<div class='notice notice-errror is-dismissible'><p>{$message}</p></div>";
 			}
-			elseif ( $user_data[ "w" ] != 0 )
+			elseif ( $user_data[ "warnings" ] != 0 )
 			{
-				$type    = "warning";
 				$message = sprintf(
 					__( "Could not import %1\$s products from supplier %2\$s (%3\$s)!<br>Check the logs for more details.", "woo_ds_shopkeeper" ),
-					$user_data[ "w" ],
-					$user_data[ "u" ],
+					$user_data[ "warnings" ],
+					$user_data[ "user"     ],
 					$user_id
 				);
+
+				echo "<div class='notice notice-warning is-dismissible'><p>{$message}</p></div>";
+
+				$count   = array_sum( array_column( $data, "count" ) );
+
+				if ( $count > 0 )
+				{
+					$message = __( "{$count} products successfully imported!", "woo_ds_shopkeeper" );
+					echo "<div class='notice notice-success is-dismissible'><p>{$message}</p></div>";
+				}
 			}
 			else
 			{
-				$type    = "success";
-				$message = __( "Products successfully imported!", "woo_ds_shopkeeper" );
-			}
+				$count   = array_sum( array_column( $data, "count" ) );
+				$message = __( "{$count} products successfully imported!", "woo_ds_shopkeeper" );
 
-			echo "<div class='notice notice-{$type} is-dismissible'><p>{$message}</p></div>";
+				echo "<div class='notice notice-success is-dismissible'><p>{$message}</p></div>";
+			}
 		}
 	}
 
