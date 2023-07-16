@@ -679,7 +679,7 @@ class Dropshipping_Shopkeeper
 			elseif ( $user_data[ "warnings" ] != 0 )
 			{
 				$message = sprintf(
-					__( "Could not import %1\$s products from supplier %2\$s (%3\$s)!<br>Check the logs for more details.", "woo_ds_shopkeeper" ),
+					__( "Could not import/sync %1\$s products from supplier %2\$s (%3\$s)!<br>Check the logs for more details.", "woo_ds_shopkeeper" ),
 					$user_data[ "warnings" ],
 					$user_data[ "user"     ],
 					$user_id
@@ -691,14 +691,14 @@ class Dropshipping_Shopkeeper
 
 				if ( $count > 0 )
 				{
-					$message = __( "{$count} products successfully imported!", "woo_ds_shopkeeper" );
+					$message = __( "{$count} products successfully imported/synced!", "woo_ds_shopkeeper" );
 					echo "<div class='notice notice-success is-dismissible'><p>{$message}</p></div>";
 				}
 			}
 			else
 			{
 				$count   = array_sum( array_column( $data, "count" ) );
-				$message = __( "{$count} products successfully imported!", "woo_ds_shopkeeper" );
+				$message = __( "{$count} products successfully imported/synced!", "woo_ds_shopkeeper" );
 
 				echo "<div class='notice notice-success is-dismissible'><p>{$message}</p></div>";
 			}
