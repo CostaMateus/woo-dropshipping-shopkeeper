@@ -417,196 +417,25 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
+     * Sync products
      *
      * @since   1.0.0
      * @return  void
      */
     public function process_b_a_sync()
     {
-
+        return $this->import_sync_products( $_POST[ "users" ], true );
     }
 
     /**
+     * Import products
      *
      * @since   1.0.0
      * @return  void
      */
     public function process_b_a_import()
     {
-        $users = $_POST[ "users" ];
-
-        if ( !empty( $users ) )
-        {
-            $errors = [];
-
-            foreach ( $users as $user_id )
-            {
-                $user     = get_user_by( "id", $user_id );
-
-                $errors[ $user_id ] = [
-                    "errors"   => 0,
-                    "warnings" => 0,
-                    "code"     => 0,
-                    "count"    => 0,
-                    "user"     => $user->user_login,
-                ];
-
-                $url      = get_user_meta( $user->ID, "_dsm_url"     , true );
-                $secret   = get_user_meta( $user->ID, "_dsm_secret"  , true );
-                $secret_s = get_user_meta( $user->ID, "_dsm_secret_s", true );
-
-                if ( !$url || !$secret || !$secret_s )
-                {
-                    $errors[ $user_id ][ "errors" ]++;
-                    $errors[ $user_id ][ "code"   ] = "MISS";
-                    continue;
-                }
-
-                $email    = get_option( "_dsm_email_general", true );
-                $email    = ( !empty( $email ) && is_email( $email ) ) ? $email : get_bloginfo( "admin_email" );
-
-                $args     = [
-                    "headers" => [
-                        "_dsm_email"      => $email,
-                        "_dsm_supplier"   => $secret_s,
-                        "_dsm_shopkeeper" => $secret,
-                    ]
-                ];
-
-                $url      = "{$url}/wp-json/dsm/v1/products";
-
-                $response = wp_remote_get( $url, $args );
-
-                if ( is_wp_error( $response ) )
-                {
-                    $log  = "ERROR - Supplier ID {$user_id} - api_query_error - " . $response->get_error_message();
-                    $log .= " - " . json_encode( [ "url" => $url ] );
-                    \Dropshipping_Shopkeeper::log( $log, true );
-
-                    $errors[ $user_id ][ "errors" ]++;
-                    $errors[ $user_id ][ "code"   ] = "WRG";
-                    continue;
-                }
-                else
-                {
-                    $data = json_decode( $response[ "body" ] );
-
-                    if ( $data->code == "dsm_rest_cannot_view" )
-                    {
-                        // call error / no post
-                        $errors[ $user_id ][ "errors" ]++;
-                        $errors[ $user_id ][ "code"   ] = "DRCV";
-                        continue;
-                    }
-                    else if ( $data->code == "dsm_rest_products_v1_invalid_email" )
-                    {
-                        // config error / account not created
-                        $errors[ $user_id ][ "errors" ]++;
-                        $errors[ $user_id ][ "code"   ] = "DRPIE";
-                        continue;
-                    }
-                    else if ( $data->code == "dsm_rest_products_v1_invalid_secret" )
-                    {
-                        // config error / invalid access key
-                        $errors[ $user_id ][ "errors" ]++;
-                        $errors[ $user_id ][ "code"   ] = "DRPIS";
-                        continue;
-                    }
-                }
-
-                $products = [];
-
-                try
-                {
-                    foreach ( $data->data as $product )
-                    {
-                        if ( empty( $product->sku ) ) continue;
-
-                        $products[] = DSM_Helper::translate_product( $product );
-                    }
-                }
-                catch ( \Exception $e )
-                {
-                    $log = "ERROR - Supplier ID {$user_id} - translate_product - " . $e->getMessage();
-                    \Dropshipping_Shopkeeper::log( $log, true );
-
-                    $errors[ $user_id ][ "errors" ]++;
-                    $errors[ $user_id ][ "code"   ] = "EXCP";
-                    continue;
-                }
-
-                /**
-                 * Disable permissions check locally
-                 */
-                add_filter( "woocommerce_rest_check_permissions", "__return_true" );
-
-                $request    = new \WP_REST_Request( "POST", "/wc/v3/products" );
-                $controller = new \WC_REST_Products_Controller;
-
-                foreach ( $products as $prd )
-                {
-                    /**
-                     * TODO testar se SKU já é cadastrados
-                     * Se sim, não importar, mas atualizar preço e estoque
-                     * wc_get_product_id_by_sku( $sku )
-                     */
-
-                    $request->set_body_params( $prd );
-                    $response = $controller->create_item( $request );
-
-                    if ( is_wp_error( $response ) )
-                    {
-                        $log = "ERROR - Supplier ID {$user_id} - error_create_product - " . $response->get_error_message();
-                        \Dropshipping_Shopkeeper::log( $log, true );
-
-                        $errors[ $user_id ][ "warnings" ]++;
-                        continue;
-                    }
-
-                    $product = wc_get_product( $response->data[ "id" ] );
-                    $product->update_meta_data( "_dsm_supplier",               $user_id                );
-                    $product->update_meta_data( "_dsm_supplier_regular_price", $product->regular_price );
-                    $product->update_meta_data( "_dsm_supplier_sale_price",    $product->sale_price    );
-                    $product->update_meta_data( "_dsm_supplier_sku",           $product->sku           );
-
-                    $prefix  = get_user_meta( $user->ID, "_dsm_sku_prefix" , true );
-
-                    try
-                    {
-                        if ( $prefix )
-                            $product->set_sku( $prefix . $product->sku );
-                    }
-                    catch ( \Exception $e )
-                    {
-                        $log = "ERROR - Supplier ID {$user_id} - error_set_sku - " . $e->getMessage();
-                        \Dropshipping_Shopkeeper::log( $log, true );
-
-                        $product->delete( true );
-                        $errors[ $user_id ][ "warnings" ]++;
-                        continue;
-                    }
-
-                    $product->save();
-                }
-
-                $count      = count( $products ) - $errors[ $user_id ][ "warnings" ];
-                $log        = "INFO - Supplier ID {$user_id} - imported {$count} products";
-                \Dropshipping_Shopkeeper::log( $log );
-
-                $errors[ $user_id ][ "count" ] = $count;
-            }
-
-            $warning = max( array_column( $errors, "warnings" ) ) == 0;
-            $error   = max( array_column( $errors, "errors"   ) ) == 0;
-
-            if ( $warning && $error )
-                return $this->redirect( "success", $errors );
-
-            else if ( !$warning )
-                return $this->redirect( "warning", $errors );
-
-            return $this->redirect( "error", $errors );
-        }
+        return $this->import_sync_products( $_POST[ "users" ] );
     }
 
     /**
@@ -700,5 +529,221 @@ class DSM_Users_table extends \WP_List_Table
         $url  = admin_url( "admin.php?page=woo_ds_shopkeeper&tab=suppliers&{$type}_message=DRPWE&{$data}" );
         wp_redirect( $url );
         return;
+    }
+
+    /**
+     * Import or sync products
+     *
+     * @since   1.0.0
+     * @param   array  $users
+     * @param   bool   $sync
+     * @return  void
+     */
+    private function import_sync_products( $users, $sync = false )
+    {
+        if ( !empty( $users ) )
+        {
+            $errors = [];
+
+            foreach ( $users as $user_id )
+            {
+                $user     = get_user_by( "id", $user_id );
+
+                $errors[ $user_id ] = [
+                    "errors"   => 0,
+                    "warnings" => 0,
+                    "code"     => 0,
+                    "count"    => 0,
+                    "user"     => $user->user_login,
+                ];
+
+                $url      = get_user_meta( $user->ID, "_dsm_url"     , true );
+                $secret   = get_user_meta( $user->ID, "_dsm_secret"  , true );
+                $secret_s = get_user_meta( $user->ID, "_dsm_secret_s", true );
+
+                if ( !$url || !$secret || !$secret_s )
+                {
+                    $errors[ $user_id ][ "errors" ]++;
+                    $errors[ $user_id ][ "code"   ] = "MISS";
+                    continue;
+                }
+
+                $email    = get_option( "_dsm_email_general", true );
+                $email    = ( !empty( $email ) && is_email( $email ) ) ? $email : get_bloginfo( "admin_email" );
+
+                $args     = [
+                    "headers" => [
+                        "_dsm_email"      => $email,
+                        "_dsm_supplier"   => $secret_s,
+                        "_dsm_shopkeeper" => $secret,
+                    ]
+                ];
+
+                $url      = "{$url}/wp-json/dsm/v1/products";
+
+                /**
+                 * Get supplier products
+                 */
+                $response = wp_remote_get( $url, $args );
+
+                if ( is_wp_error( $response ) )
+                {
+                    $log  = "ERROR - Supplier ID {$user_id} - api_query_error - " . $response->get_error_message();
+                    $log .= " - " . json_encode( [ "url" => $url ] );
+                    \Dropshipping_Shopkeeper::log( $log, true );
+
+                    $errors[ $user_id ][ "errors" ]++;
+                    $errors[ $user_id ][ "code"   ] = "WRG";
+                    continue;
+                }
+                else
+                {
+                    $data = json_decode( $response[ "body" ] );
+
+                    if ( $data->code == "dsm_rest_cannot_view" )
+                    {
+                        // call error / no post
+                        $errors[ $user_id ][ "errors" ]++;
+                        $errors[ $user_id ][ "code"   ] = "DRCV";
+                        continue;
+                    }
+                    else if ( $data->code == "dsm_rest_products_v1_invalid_email" )
+                    {
+                        // config error / account not created
+                        $errors[ $user_id ][ "errors" ]++;
+                        $errors[ $user_id ][ "code"   ] = "DRPIE";
+                        continue;
+                    }
+                    else if ( $data->code == "dsm_rest_products_v1_invalid_secret" )
+                    {
+                        // config error / invalid access key
+                        $errors[ $user_id ][ "errors" ]++;
+                        $errors[ $user_id ][ "code"   ] = "DRPIS";
+                        continue;
+                    }
+                }
+
+                $products = [];
+
+                try
+                {
+                    foreach ( $data->data as $product )
+                    {
+                        if ( empty( $product->sku ) ) continue;
+
+                        /**
+                         * Translate products
+                         */
+                        $products[] = DSM_Helper::translate_product( $product );
+                    }
+                }
+                catch ( \Exception $e )
+                {
+                    $log = "ERROR - Supplier ID {$user_id} - translate_product - " . $e->getMessage();
+                    \Dropshipping_Shopkeeper::log( $log, true );
+
+                    $errors[ $user_id ][ "errors" ]++;
+                    $errors[ $user_id ][ "code"   ] = "EXCP";
+                    continue;
+                }
+
+                /**
+                 * Disable permissions check locally
+                 */
+                add_filter( "woocommerce_rest_check_permissions", "__return_true" );
+
+                $request    = new \WP_REST_Request( "POST", "/wc/v3/products" );
+                $controller = new \WC_REST_Products_Controller;
+
+                $prefix     = get_user_meta( $user->ID, "_dsm_sku_prefix" , true );
+
+                foreach ( $products as $aux_product )
+                {
+                    $prd_id   = wc_get_product_id_by_sku( $prefix . $aux_product[ "sku" ] );
+
+                    /**
+                     * Verify if product exists
+                     */
+                    if ( $prd_id )
+                    {
+                        /**
+                         * Check if is for sync
+                         */
+                        if ( $sync )
+                        {
+                            $product = wc_get_product( $prd_id );
+                            $product->update_meta_data( "_dsm_supplier_regular_price", $aux_product[ "regular_price" ] );
+                            $product->update_meta_data( "_dsm_supplier_sale_price",    $aux_product[ "sale_price"    ] );
+                            $product->set_stock_status( $aux_product[ "stock_status" ] );
+
+                            if ( $aux_product[ "manage_stock" ] ) $product->set_stock_quantity( $aux_product[ "stock_quantity" ] );
+
+                            $product->save();
+                        }
+
+                        continue;
+                    }
+
+                    /**
+                     * Product is for import
+                     */
+                    if ( !$sync )
+                    {
+                        $request->set_body_params( $aux_product );
+                        $response = $controller->create_item( $request );
+
+                        if ( is_wp_error( $response ) )
+                        {
+                            $log = "ERROR - Supplier ID {$user_id} - error_create_product - " . $response->get_error_message();
+                            \Dropshipping_Shopkeeper::log( $log, true );
+
+                            $errors[ $user_id ][ "warnings" ]++;
+                            continue;
+                        }
+
+                        $product = wc_get_product( $response->data[ "id" ] );
+
+                        $product->update_meta_data( "_dsm_supplier",               $user_id                );
+                        $product->update_meta_data( "_dsm_supplier_regular_price", $product->regular_price );
+                        $product->update_meta_data( "_dsm_supplier_sale_price",    $product->sale_price    );
+                        $product->update_meta_data( "_dsm_supplier_sku",           $product->sku           );
+
+                        try
+                        {
+                            if ( $prefix )
+                                $product->set_sku( $prefix . $product->sku );
+                        }
+                        catch ( \Exception $e )
+                        {
+                            $log = "ERROR - Supplier ID {$user_id} - error_set_sku - " . $e->getMessage();
+                            \Dropshipping_Shopkeeper::log( $log, true );
+
+                            $product->delete( true );
+                            $errors[ $user_id ][ "warnings" ]++;
+                            continue;
+                        }
+
+                        $product->save();
+                    }
+                }
+
+                $count      = count( $products ) - $errors[ $user_id ][ "warnings" ];
+                $log        = "INFO - Supplier ID {$user_id} - imported {$count} products";
+                \Dropshipping_Shopkeeper::log( $log );
+
+                $errors[ $user_id ][ "count" ] = $count;
+            }
+
+            $warning = max( array_column( $errors, "warnings" ) ) == 0;
+            $error   = max( array_column( $errors, "errors"   ) ) == 0;
+
+            if ( $warning && $error )
+                return $this->redirect( "success", $errors );
+
+            else if ( !$warning )
+                return $this->redirect( "warning", $errors );
+
+            return $this->redirect( "error", $errors );
+        }
     }
 }
