@@ -100,10 +100,11 @@ class DSM_Products_table extends \WP_List_Table
      */
     public function usort_reorder( $a, $b )
     {
-        $orderby = "name";
+        $orderby = "date";
 
         if ( !empty( $_GET[ "orderby" ] ) )
         {
+            if ( $_GET[ "orderby" ] === "name"     ) $orderby = "name";
             if ( $_GET[ "orderby" ] === "supplier" ) $orderby = "supplier";
             if ( $_GET[ "orderby" ] === "sku"      ) $orderby = "sku";
             if ( $_GET[ "orderby" ] === "price"    ) $orderby = "price";
