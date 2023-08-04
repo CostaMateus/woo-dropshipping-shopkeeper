@@ -778,7 +778,7 @@ class Dropshipping_Shopkeeper
 			}
 
 			$url     = get_home_url();
-			$cost    = get_option( "_dsm_hash_cost" ) ?? 12;
+			$cost    = get_option( "_dsm_hash_cost" ) ?: 12;
 			$pass    = "{$user->ID}|{$user->user_email}|{$url_sp}|{$url}";
 			$secret  = password_hash( $pass, PASSWORD_BCRYPT, [ "cost" => $cost ] );
 
