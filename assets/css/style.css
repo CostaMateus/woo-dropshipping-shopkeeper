@@ -194,3 +194,25 @@ table.wp-list-table .column-price {
 .dsm-d-none {
     display: none !important;
 }
+
+table.wp-list-table mark.upprice,
+table.wp-list-table mark.downprice,
+table.wp-list-table mark.evenprice {
+    line-height: 1 !important;
+    font-weight: 700 !important;
+    background:  transparent none !important;
+}
+
+table.wp-list-table mark.upprice {
+    color: #AA4444 !important;
+}
+table.wp-list-table mark.downprice {
+    color: #7AD03A !important;
+}
+table.wp-list-table mark.evenprice {
+    color: #739BD0 !important;
+}
+
+table.wp-list-table .column-price {
+    width: 20ch !important;
+}
