@@ -204,7 +204,7 @@ class DSM_Users_table extends \WP_List_Table
 
         usort( $this->users, [ &$this, "usort_reorder" ] );
 
-        $per_page              = 10;
+        $per_page              = 25;
         $current_page          = $this->get_pagenum();
         $total_items           = count( $this->users );
         $total_pages           = ceil( $total_items / $per_page );
@@ -672,8 +672,33 @@ class DSM_Users_table extends \WP_List_Table
                         if ( $sync )
                         {
                             $product = wc_get_product( $prd_id );
+
+                            $regular = $product->get_meta( "_dsm_supplier_regular_price" );
+                            $sale    = $product->get_meta( "_dsm_supplier_sale_price"    );
+
+                            if ( $sale )
+                            {
+                                if ( $sale == $aux_product[ "sale_price" ] )
+                                    $value = "even";
+                                elseif ( $sale < $aux_product[ "sale_price" ] )
+                                    $value = "down";
+                                else
+                                    $value = "up";
+                            }
+                            else
+                            {
+                                if ( $regular == $aux_product[ "regular_price" ] )
+                                    $value = "even";
+                                elseif ( $regular < $aux_product[ "regular_price" ] )
+                                    $value = "down";
+                                else
+                                    $value = "up";
+                            }
+
                             $product->update_meta_data( "_dsm_supplier_regular_price", $aux_product[ "regular_price" ] );
                             $product->update_meta_data( "_dsm_supplier_sale_price",    $aux_product[ "sale_price"    ] );
+                            $product->update_meta_data( "_dsm_supplier_price",         $value                          );
+
                             $product->set_stock_status( $aux_product[ "stock_status" ] );
 
                             if ( $aux_product[ "manage_stock" ] ) $product->set_stock_quantity( $aux_product[ "stock_quantity" ] );
