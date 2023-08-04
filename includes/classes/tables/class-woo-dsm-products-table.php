@@ -100,36 +100,64 @@ class DSM_Products_table extends \WP_List_Table
      */
     public function usort_reorder( $a, $b )
     {
-        $orderby = "date";
+        $order   = ( !empty( $_GET[ "order"   ] ) ) ? $_GET[ "order"   ] : "desc";
+        $orderby = ( !empty( $_GET[ "orderby" ] ) ) ? $_GET[ "orderby" ] : "date";
 
-        if ( !empty( $_GET[ "orderby" ] ) )
-        {
-            if ( $_GET[ "orderby" ] === "name"     ) $orderby = "name";
-            if ( $_GET[ "orderby" ] === "supplier" ) $orderby = "supplier";
-            if ( $_GET[ "orderby" ] === "sku"      ) $orderby = "sku";
-            if ( $_GET[ "orderby" ] === "price"    ) $orderby = "price";
-        }
-
-        $order   = ( !empty( $_GET[ "order" ] ) ) ? $_GET[ "order" ] : "desc";
-        $result  = strcasecmp( $a->$orderby, $b->$orderby );
+        if ( $_GET[ "orderby" ] === "name" ) $orderby = "get_name";
+        if ( $_GET[ "orderby" ] === "sku"  ) $orderby = "get_sku";
 
         if ( $orderby == "date" )
         {
             $ta     = strtotime( $a->get_date_modified() );
             $tb     = strtotime( $b->get_date_modified() );
 
-            $result = ( $ta - $tb );
+            if ( strcasecmp( $ta, $tb ) !== 0 )
+            {
+                if ( $order === "asc" )
+                    return $ta - $tb;
+                else
+                    return $tb - $ta;
+            }
+
+            $orderby = "price";
         }
 
         if ( $orderby == "price" )
         {
-            if ( $order === "asc" )
-                return ( float ) $a->get_price() > ( float ) $b->get_price();
+            $pa = ( float ) $a->get_price();
+            $pb = ( float ) $b->get_price();
 
-            return ( float ) $a->get_price() < ( float ) $b->get_price();
+            if ( strcasecmp( $pa, $pb ) !== 0 )
+            {
+                if ( $order === "asc" )
+                    return $pa > $pb;
+                else
+                    return $pa < $pb;
+            }
+
+            $orderby = "supplier";
         }
 
-        return ( $order === "asc" ) ? $result : -$result;
+        if ( $orderby == "supplier" )
+        {
+            $s1     = $a->get_meta( "_dsm_supplier" );
+            $s2     = $a->get_meta( "_dsm_supplier" );
+
+            $result = strcasecmp( $s1, $s2 );
+
+            if ( $result !== 0 )
+                return ( $order === "asc" ) ? $result : -$result;
+        }
+
+        $columns = [ "get_name", "get_sku" ];
+
+        foreach ( $columns as $column )
+        {
+            $result = strcasecmp( $a->$column, $b->$column );
+
+            if ( $result !== 0 )
+                return ( $order === "asc" ) ? $result : -$result;
+        }
     }
 
     /**
@@ -381,11 +409,20 @@ class DSM_Products_table extends \WP_List_Table
 
         if ( $value )
         {
-            if ( $value == "up" )
-                $class = "outofstock";
+            switch ( $value )
+            {
+                case "up":
+                    $class = "upprice";
+                break;
 
-            if ( $value == "down" )
-                $class = "instock";
+                case "down":
+                    $class = "downprice";
+                break;
+
+                case "even":
+                    $class = "evenprice";
+                break;
+            }
 
             return "<mark class='{$class}'>{$item->get_price_html()}</mark>";
         }
