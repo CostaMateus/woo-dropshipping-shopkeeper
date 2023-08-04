@@ -405,26 +405,30 @@ class DSM_Products_table extends \WP_List_Table
     public function column_price( $item )
     {
         $class = "";
-        $value = $item->get_meta( "_dsm_supplier_price" );
+        $value = $item->get_meta( "_dsm_supplier_status_price" );
+        $updt  = $item->get_meta( "_dsm_supplier_price_upd"    );
 
-        if ( $value )
+        if ( $value && $updt )
         {
-            switch ( $value )
+            if ( strtotime( $updt ) > strtotime( "-2 days" ) )
             {
-                case "up":
-                    $class = "upprice";
-                break;
+                switch ( $value )
+                {
+                    case "up":
+                        $class = "upprice";
+                    break;
 
-                case "down":
-                    $class = "downprice";
-                break;
+                    case "down":
+                        $class = "downprice";
+                    break;
 
-                case "even":
-                    $class = "evenprice";
-                break;
+                    case "even":
+                        $class = "evenprice";
+                    break;
+                }
+
+                return "<mark class='{$class}'>{$item->get_price_html()}</mark>";
             }
-
-            return "<mark class='{$class}'>{$item->get_price_html()}</mark>";
         }
 
         return $item->get_price_html();
