@@ -62,14 +62,14 @@ class DSM_Products_table extends \WP_List_Table
     {
         return $columns = [
             // "cb"       => "",
-            "thumbnail"  => __( "Thumbnail",  "woo_ds_shopkeeper" ),
-            "name"       => __( "Name",       "woo_ds_shopkeeper" ),
-            "supplier"   => __( "Supplier",   "woo_ds_shopkeeper" ),
-            "sku"        => __( "SKU",        "woo_ds_shopkeeper" ),
-            "stock"      => __( "Stock",      "woo_ds_shopkeeper" ),
-            "price"      => __( "Price",      "woo_ds_shopkeeper" ),
-            "categories" => __( "Categories", "woo_ds_shopkeeper" ),
-            "date"       => __( "Date",       "woo_ds_shopkeeper" ),
+            "thumbnail"  => __( "Thumbnail",   "woo_ds_shopkeeper" ),
+            "name"       => __( "Name",        "woo_ds_shopkeeper" ),
+            "supplier"   => __( "Supplier",    "woo_ds_shopkeeper" ),
+            "sku"        => __( "SKU",         "woo_ds_shopkeeper" ),
+            "stock"      => __( "Stock",       "woo_ds_shopkeeper" ),
+            "price"      => __( "Price",       "woo_ds_shopkeeper" ),
+            "categories" => __( "Categories",  "woo_ds_shopkeeper" ),
+            "date"       => __( "Last change", "woo_ds_shopkeeper" ),
         ];
     }
 
@@ -108,11 +108,26 @@ class DSM_Products_table extends \WP_List_Table
             if ( $_GET[ "orderby" ] === "supplier" ) $orderby = "supplier";
             if ( $_GET[ "orderby" ] === "sku"      ) $orderby = "sku";
             if ( $_GET[ "orderby" ] === "price"    ) $orderby = "price";
-            if ( $_GET[ "orderby" ] === "date"     ) $orderby = "date_created";
         }
 
-        $order   = ( !empty( $_GET[ "order" ] ) ) ? $_GET[ "order" ] : "asc";
+        $order   = ( !empty( $_GET[ "order" ] ) ) ? $_GET[ "order" ] : "desc";
         $result  = strcasecmp( $a->$orderby, $b->$orderby );
+
+        if ( $orderby == "date" )
+        {
+            $ta     = strtotime( $a->get_date_modified() );
+            $tb     = strtotime( $b->get_date_modified() );
+
+            $result = ( $ta - $tb );
+        }
+
+        if ( $orderby == "price" )
+        {
+            if ( $order === "asc" )
+                return ( float ) $a->get_price() > ( float ) $b->get_price();
+
+            return ( float ) $a->get_price() < ( float ) $b->get_price();
+        }
 
         return ( $order === "asc" ) ? $result : -$result;
     }
@@ -160,7 +175,7 @@ class DSM_Products_table extends \WP_List_Table
 
         usort( $this->products, [ &$this, "usort_reorder" ] );
 
-        $per_page              = 10;
+        $per_page              = 25;
         $current_page          = $this->get_pagenum();
         $total_items           = count( $this->products );
         $total_pages           = ceil( $total_items / $per_page );
@@ -220,7 +235,6 @@ class DSM_Products_table extends \WP_List_Table
         if ( $item->get_image_id() )
             return wp_get_attachment_image( $item->get_image_id(), [ 40, 40 ], true );
 
-            // echo $item->get_image_id();
         return "<img width='40' height='40' src='/wp-content/uploads/woocommerce-placeholder-150x150.png' class='attachment-40x40 size-40x40'
             decoding='async' loading='lazy' sizes='(max-width: 40px) 100vw, 40px' >";
     }
@@ -234,10 +248,19 @@ class DSM_Products_table extends \WP_List_Table
      */
     public function column_name( $item )
     {
+        $status          = [
+            "publish" => __( "Published",      "woo_ds_shopkeeper" ),
+            "pending" => __( "Pending review", "woo_ds_shopkeeper" ),
+            "draft"   => __( "Draft",          "woo_ds_shopkeeper" ),
+            "private" => __( "Private",        "woo_ds_shopkeeper" ),
+        ];
+
+        $status          = isset( $status[ $item->get_status() ] ) ? $status[ $item->get_status() ] : ucfirst( $item->get_status() ) ;
+
         $actions         = [];
         $actions[ "id" ] = "ID: {$item->get_id()}";
 
-        $product_name    = $item->get_name();
+        $product_name    = $item->get_name() . " - <small>{$status}</small>";
 
         if ( current_user_can( "edit_posts" ) )
         {
@@ -251,6 +274,7 @@ class DSM_Products_table extends \WP_List_Table
 
             $actions[ "edit" ] = "<a href='{$edit_link}'>" . __( "Edit",   "woo_ds_shopkeeper" ) . "</a>";
             $product_name      = "<strong><a href='{$edit_link}'>{$item->get_name()}</a></strong>";
+            $product_name     .= " - <small>{$status}</small>";
         }
 
         return sprintf( "%1s %2s", $product_name, $this->row_actions( $actions ) );
@@ -352,6 +376,20 @@ class DSM_Products_table extends \WP_List_Table
      */
     public function column_price( $item )
     {
+        $class = "";
+        $value = $item->get_meta( "_dsm_supplier_price" );
+
+        if ( $value )
+        {
+            if ( $value == "up" )
+                $class = "outofstock";
+
+            if ( $value == "down" )
+                $class = "instock";
+
+            return "<mark class='{$class}'>{$item->get_price_html()}</mark>";
+        }
+
         return $item->get_price_html();
     }
 
@@ -376,19 +414,10 @@ class DSM_Products_table extends \WP_List_Table
      */
     public function column_date( $item )
     {
-        $status = [
-            "publish" => __( "Published",      "woo_ds_shopkeeper" ),
-            "pending" => __( "Pending review", "woo_ds_shopkeeper" ),
-            "draft"   => __( "Draft",          "woo_ds_shopkeeper" ),
-            "private" => __( "Private",        "woo_ds_shopkeeper" ),
-        ];
+        $date = $item->get_date_modified();
+        $date = wc_format_datetime( $date, "Y/m/d H:i:s" );
 
-        $status = isset( $status[ $item->get_status() ] ) ? $status[ $item->get_status() ] : ucfirst( $item->get_status() ) ;
-
-        $date   = $item->get_date_created();
-        $date   = wc_format_datetime( $date, "Y/m/d H:i" );
-
-        return $status . "<br>" . $date;
+        return $date;
     }
 
     /**
