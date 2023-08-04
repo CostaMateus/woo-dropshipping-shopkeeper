@@ -697,7 +697,8 @@ class DSM_Users_table extends \WP_List_Table
 
                             $product->update_meta_data( "_dsm_supplier_regular_price", $aux_product[ "regular_price" ] );
                             $product->update_meta_data( "_dsm_supplier_sale_price",    $aux_product[ "sale_price"    ] );
-                            $product->update_meta_data( "_dsm_supplier_price",         $value                          );
+                            $product->update_meta_data( "_dsm_supplier_status_price",  $value                          );
+                            $product->update_meta_data( "_dsm_supplier_price_upd",     date( "Y-m-d H:i:s" )           );
 
                             $product->set_stock_status( $aux_product[ "stock_status" ] );
 
