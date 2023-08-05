@@ -696,7 +696,7 @@ class DSM_Users_table extends \WP_List_Table
                             $change   = false;
                             $product  = wc_get_product( $prd_id );
 
-                            $sttPrice = $product->get_meta( "_dsm_supplier_status_price" );
+                            $sttPrice = $product->get_meta( "_dsm_supplier_status_price"  );
                             $regular  = $product->get_meta( "_dsm_supplier_regular_price" );
                             $sale     = $product->get_meta( "_dsm_supplier_sale_price"    );
 
@@ -708,11 +708,7 @@ class DSM_Users_table extends \WP_List_Table
                                 if ( $sale != $aux_product[ "sale_price" ] )
                                 {
                                     $change = true;
-
-                                    if ( $sale < $aux_product[ "sale_price" ] )
-                                        $value = "down";
-                                    else
-                                        $value = "up";
+                                    $value  = ( $sale < $aux_product[ "sale_price" ] ) ? "down" : "up";
 
                                     $product->update_meta_data( "_dsm_supplier_sale_price",   $aux_product[ "sale_price" ] );
                                     $product->update_meta_data( "_dsm_supplier_status_price", $value                       );
@@ -739,11 +735,7 @@ class DSM_Users_table extends \WP_List_Table
                                 if ( $regular != $aux_product[ "regular_price" ] )
                                 {
                                     $change = true;
-
-                                    if ( $regular < $aux_product[ "regular_price" ] )
-                                        $value = "down";
-                                    else
-                                        $value = "up";
+                                    $value  = ( $regular < $aux_product[ "regular_price" ] ) ? "down" : "up";
 
                                     $product->update_meta_data( "_dsm_supplier_regular_price", $aux_product[ "regular_price" ] );
                                     $product->update_meta_data( "_dsm_supplier_status_price",  $value                          );
