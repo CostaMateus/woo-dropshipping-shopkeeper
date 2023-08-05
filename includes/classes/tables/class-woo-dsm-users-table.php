@@ -671,6 +671,7 @@ class DSM_Users_table extends \WP_List_Table
                          */
                         if ( $sync )
                         {
+                            $change  = false;
                             $product = wc_get_product( $prd_id );
 
                             $regular = $product->get_meta( "_dsm_supplier_regular_price" );
@@ -679,36 +680,62 @@ class DSM_Users_table extends \WP_List_Table
                             if ( $sale )
                             {
                                 if ( $sale == $aux_product[ "sale_price" ] )
-                                    $value = "even";
-                                elseif ( $sale < $aux_product[ "sale_price" ] )
-                                    $value = "down";
+                                {
+                                    $value  = "even";
+                                }
                                 else
-                                    $value = "up";
+                                {
+                                    $change = true;
+
+                                    if ( $sale < $aux_product[ "sale_price" ] )
+                                        $value = "down";
+                                    else
+                                        $value = "up";
+
+                                    $product->update_meta_data( "_dsm_supplier_sale_price",    $aux_product[ "sale_price"    ] );
+                                }
                             }
-                            else
+
+                            if ( $regular )
                             {
                                 if ( $regular == $aux_product[ "regular_price" ] )
+                                {
                                     $value = "even";
-                                elseif ( $regular < $aux_product[ "regular_price" ] )
-                                    $value = "down";
+                                }
                                 else
-                                    $value = "up";
+                                {
+                                    $change = true;
+
+                                    if ( $regular < $aux_product[ "regular_price" ] )
+                                        $value = "down";
+                                    else
+                                        $value = "up";
+
+                                    $product->update_meta_data( "_dsm_supplier_regular_price", $aux_product[ "regular_price" ] );
+                                }
                             }
 
-                            $product->update_meta_data( "_dsm_supplier_regular_price", $aux_product[ "regular_price" ] );
-                            $product->update_meta_data( "_dsm_supplier_sale_price",    $aux_product[ "sale_price"    ] );
-                            $product->update_meta_data( "_dsm_supplier_status_price",  $value                          );
-                            $product->update_meta_data( "_dsm_supplier_price_upd",     date( "Y-m-d H:i:s" )           );
+                            if ( $aux_product[ "stock_status" ] != $product->get_stock_status() )
+                            {
+                                $change = true;
+                                $product->set_stock_status( $aux_product[ "stock_status" ] );
 
-                            $product->set_stock_status( $aux_product[ "stock_status" ] );
+                                if ( $aux_product[ "stock_status" ] == "outofstock" )
+                                    $product->set_status( "draft" );
+                            }
 
-                            if ( $aux_product[ "manage_stock" ] )
+                            if ( $aux_product[ "manage_stock" ] && $aux_product[ "stock_quantity" ] != $product->get_stock_quantity() )
+                            {
+                                $change = true;
                                 $product->set_stock_quantity( $aux_product[ "stock_quantity" ] );
+                            }
 
-                            if ( $aux_product[ "stock_status" ] == "outofstock" )
-                                $product->set_status( "draft" );
-
-                            $product->save();
+                            if ( $change )
+                            {
+                                $product->update_meta_data( "_dsm_supplier_status_price", $value                );
+                                $product->update_meta_data( "_dsm_supplier_price_upd",    date( "Y-m-d H:i:s" ) );
+                                $product->save();
+                            }
                         }
 
                         continue;
@@ -737,6 +764,7 @@ class DSM_Users_table extends \WP_List_Table
                         $product->update_meta_data( "_dsm_supplier_regular_price", $product->regular_price );
                         $product->update_meta_data( "_dsm_supplier_sale_price",    $product->sale_price    );
                         $product->update_meta_data( "_dsm_supplier_sku",           $product->sku           );
+                        $product->update_meta_data( "_dsm_supplier_status_price",  "even"                  );
 
                         try
                         {
