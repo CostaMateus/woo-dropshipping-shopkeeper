@@ -104,11 +104,12 @@ class DSM_Users_table extends \WP_List_Table
     {
         return $columns = [
             "cb"       => "",
-            "username" => __( "Username", "woo_ds_shopkeeper" ),
-            "name"     => __( "Name",     "woo_ds_shopkeeper" ),
-            "email"    => __( "Email",    "woo_ds_shopkeeper" ),
-            "products" => __( "Products", "woo_ds_shopkeeper" ),
-            "keys"     => __( "Keys",     "woo_ds_shopkeeper" ),
+            "username" => __( "Username",   "woo_ds_shopkeeper" ),
+            "name"     => __( "Name",       "woo_ds_shopkeeper" ),
+            "prefix"   => __( "SKU Prefix", "woo_ds_shopkeeper" ),
+            "email"    => __( "Email",      "woo_ds_shopkeeper" ),
+            "products" => __( "Products",   "woo_ds_shopkeeper" ),
+            "keys"     => __( "Keys",       "woo_ds_shopkeeper" ),
         ];
     }
 
@@ -291,7 +292,10 @@ class DSM_Users_table extends \WP_List_Table
      */
     public function column_cb( $item )
     {
-        return sprintf( "<input type='checkbox' name='users[]' value='%s' />", $item->ID );
+        $meta   = $item->usermeta;
+        $prefix = $meta[ "_dsm_sku_prefix" ] ? "" : "disabled";
+
+        return sprintf( "<input type='checkbox' name='users[]' value='%s' $prefix />", $item->ID );
     }
 
     /**
@@ -335,6 +339,24 @@ class DSM_Users_table extends \WP_List_Table
     public function column_name( $item )
     {
         return $item->user_firstname . " " . $item->user_lastname;
+    }
+
+    /**
+     * SKU Prefix column
+     *
+     * @since   1.0.0
+     * @param   array|object $item
+     * @return  string
+     */
+    public function column_prefix( $item )
+    {
+        $meta   = $item->usermeta;
+        $prefix = $meta[ "_dsm_sku_prefix" ];
+
+        if ( !$prefix )
+            return "<mark class='outofstock'>" . __( "Missing SKU Prefix", "woo_ds_shopkeeper" ) . "</mark>";
+
+        return $prefix;
     }
 
     /**
