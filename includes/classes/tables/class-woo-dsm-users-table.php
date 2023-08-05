@@ -671,19 +671,19 @@ class DSM_Users_table extends \WP_List_Table
                          */
                         if ( $sync )
                         {
-                            $change  = false;
-                            $product = wc_get_product( $prd_id );
+                            $change   = false;
+                            $product  = wc_get_product( $prd_id );
 
-                            $regular = $product->get_meta( "_dsm_supplier_regular_price" );
-                            $sale    = $product->get_meta( "_dsm_supplier_sale_price"    );
+                            $sttPrice = $product->get_meta( "_dsm_supplier_status_price" );
+                            $regular  = $product->get_meta( "_dsm_supplier_regular_price" );
+                            $sale     = $product->get_meta( "_dsm_supplier_sale_price"    );
 
+                            /**
+                             * Check if has sale price
+                             */
                             if ( $sale )
                             {
-                                if ( $sale == $aux_product[ "sale_price" ] )
-                                {
-                                    $value  = "even";
-                                }
-                                else
+                                if ( $sale != $aux_product[ "sale_price" ] )
                                 {
                                     $change = true;
 
@@ -692,17 +692,29 @@ class DSM_Users_table extends \WP_List_Table
                                     else
                                         $value = "up";
 
-                                    $product->update_meta_data( "_dsm_supplier_sale_price",    $aux_product[ "sale_price"    ] );
+                                    $product->update_meta_data( "_dsm_supplier_sale_price",   $aux_product[ "sale_price" ] );
+                                    $product->update_meta_data( "_dsm_supplier_status_price", $value                       );
+                                    $product->update_meta_data( "_dsm_supplier_price_upd",    date( "Y-m-d H:i:s" )        );
+                                }
+                                else
+                                {
+                                    if ( $sttPrice != "even" )
+                                    {
+                                        $change = true;
+                                        $value  = "even";
+
+                                        $product->update_meta_data( "_dsm_supplier_status_price", $value                );
+                                        $product->update_meta_data( "_dsm_supplier_price_upd",    date( "Y-m-d H:i:s" ) );
+                                    }
                                 }
                             }
 
+                            /**
+                             * Check if has regular price
+                             */
                             if ( $regular )
                             {
-                                if ( $regular == $aux_product[ "regular_price" ] )
-                                {
-                                    $value = "even";
-                                }
-                                else
+                                if ( $regular != $aux_product[ "regular_price" ] )
                                 {
                                     $change = true;
 
@@ -712,9 +724,25 @@ class DSM_Users_table extends \WP_List_Table
                                         $value = "up";
 
                                     $product->update_meta_data( "_dsm_supplier_regular_price", $aux_product[ "regular_price" ] );
+                                    $product->update_meta_data( "_dsm_supplier_status_price",  $value                          );
+                                    $product->update_meta_data( "_dsm_supplier_price_upd",     date( "Y-m-d H:i:s" )           );
+                                }
+                                else
+                                {
+                                    if ( $sttPrice != "even" )
+                                    {
+                                        $change = true;
+                                        $value  = "even";
+
+                                        $product->update_meta_data( "_dsm_supplier_status_price", $value                );
+                                        $product->update_meta_data( "_dsm_supplier_price_upd",    date( "Y-m-d H:i:s" ) );
+                                    }
                                 }
                             }
 
+                            /**
+                             * Check if stock status has changed
+                             */
                             if ( $aux_product[ "stock_status" ] != $product->get_stock_status() )
                             {
                                 $change = true;
@@ -724,18 +752,20 @@ class DSM_Users_table extends \WP_List_Table
                                     $product->set_status( "draft" );
                             }
 
+                            /**
+                             * Check if stock is manageable
+                             * Check if stock quantity has changed
+                             */
                             if ( $aux_product[ "manage_stock" ] && $aux_product[ "stock_quantity" ] != $product->get_stock_quantity() )
                             {
                                 $change = true;
                                 $product->set_stock_quantity( $aux_product[ "stock_quantity" ] );
                             }
 
-                            if ( $change )
-                            {
-                                $product->update_meta_data( "_dsm_supplier_status_price", $value                );
-                                $product->update_meta_data( "_dsm_supplier_price_upd",    date( "Y-m-d H:i:s" ) );
-                                $product->save();
-                            }
+                            /**
+                             * Check if has any change and save it
+                             */
+                            if ( $change ) $product->save();
                         }
 
                         continue;
