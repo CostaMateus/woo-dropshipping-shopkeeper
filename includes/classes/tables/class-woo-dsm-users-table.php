@@ -702,7 +702,11 @@ class DSM_Users_table extends \WP_List_Table
 
                             $product->set_stock_status( $aux_product[ "stock_status" ] );
 
-                            if ( $aux_product[ "manage_stock" ] ) $product->set_stock_quantity( $aux_product[ "stock_quantity" ] );
+                            if ( $aux_product[ "manage_stock" ] )
+                                $product->set_stock_quantity( $aux_product[ "stock_quantity" ] );
+
+                            if ( $aux_product[ "stock_status" ] == "outofstock" )
+                                $product->set_status( "draft" );
 
                             $product->save();
                         }
