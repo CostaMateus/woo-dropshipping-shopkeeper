@@ -195,6 +195,9 @@ table.wp-list-table .column-price {
     display: none !important;
 }
 
+#dsm-instructions .upprice,
+#dsm-instructions .downprice,
+#dsm-instructions .evenprice,
 table.wp-list-table mark.upprice,
 table.wp-list-table mark.downprice,
 table.wp-list-table mark.evenprice {
@@ -203,18 +206,26 @@ table.wp-list-table mark.evenprice {
     background:  transparent none !important;
 }
 
+#dsm-instructions .upprice,
 table.wp-list-table .isdraft,
 table.wp-list-table mark.upprice {
     color: #AA4444 !important;
 }
+#dsm-instructions .downprice,
 table.wp-list-table .ispublish,
 table.wp-list-table mark.downprice {
     color: #7AD03A !important;
 }
+#dsm-instructions .evenprice,
 table.wp-list-table mark.evenprice {
     color: #739BD0 !important;
 }
 
+#dsm-instructions .upprice,
+#dsm-instructions .downprice,
+#dsm-instructions .evenprice {
+    font-size: 13px;
+}
 table.wp-list-table .column-price,
 table.wp-list-table .column-s_price {
     width: 20ch !important;
