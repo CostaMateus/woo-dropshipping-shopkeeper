@@ -528,6 +528,10 @@ class DSM_Users_table extends \WP_List_Table
         {
             foreach ( $users as $user_id )
             {
+                delete_user_meta( $user_id, "_dsm_url"        );
+                delete_user_meta( $user_id, "_dsm_secret_s"   );
+                delete_user_meta( $user_id, "_dsm_sku_prefix" );
+
                 wp_delete_user( $user_id );
 
                 $log = "INFO - Deleted supplier ID {$user_id}";
