@@ -213,6 +213,7 @@ table.wp-list-table mark.evenprice {
     color: #739BD0 !important;
 }
 
-table.wp-list-table .column-price {
+table.wp-list-table .column-price,
+table.wp-list-table .column-s_price {
     width: 20ch !important;
 }
