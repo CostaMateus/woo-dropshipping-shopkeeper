@@ -593,6 +593,7 @@ class Dropshipping_Shopkeeper
 			"general"   => "General",
 			"suppliers" => "Suppliers",
 			"products"  => "Products",
+			"orders"    => "Orders",
 			"settings"  => "Settings",
 			"tools"     => "Tools",
 		];
