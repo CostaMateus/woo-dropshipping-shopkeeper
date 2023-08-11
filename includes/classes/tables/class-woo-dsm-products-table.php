@@ -278,6 +278,7 @@ class DSM_Products_table extends \WP_List_Table
      */
     public function column_name( $item )
     {
+        $class           = "";
         $status          = [
             "publish" => __( "Published",      "woo_ds_shopkeeper" ),
             "pending" => __( "Pending review", "woo_ds_shopkeeper" ),
@@ -285,12 +286,19 @@ class DSM_Products_table extends \WP_List_Table
             "private" => __( "Private",        "woo_ds_shopkeeper" ),
         ];
 
+        if ( $item->get_status() == "publish" )
+            $class = "ispublish";
+
+        if ( $item->get_status() == "draft"   )
+            $class = "isdraft";
+
         $status          = isset( $status[ $item->get_status() ] ) ? $status[ $item->get_status() ] : ucfirst( $item->get_status() ) ;
+        $status          = "<small class='{$class}' >{$status}</small>";
 
         $actions         = [];
         $actions[ "id" ] = "ID: {$item->get_id()}";
 
-        $product_name    = $item->get_name() . " - <small>{$status}</small>";
+        $product_name    = $item->get_name() . " - {$status}";
 
         if ( current_user_can( "edit_posts" ) )
         {
@@ -302,9 +310,9 @@ class DSM_Products_table extends \WP_List_Table
                 )
             );
 
-            $actions[ "edit" ] = "<a href='{$edit_link}'>" . __( "Edit",   "woo_ds_shopkeeper" ) . "</a>";
-            $product_name      = "<strong><a href='{$edit_link}'>{$item->get_name()}</a></strong>";
-            $product_name     .= " - <small>{$status}</small>";
+            $actions[ "edit" ] = "<a href='{$edit_link}' >" . __( "Edit",   "woo_ds_shopkeeper" ) . "</a>";
+            $product_name      = "<strong><a href='{$edit_link}' >{$item->get_name()}</a></strong>";
+            $product_name     .= " - {$status}";
         }
 
         return sprintf( "%1s %2s", $product_name, $this->row_actions( $actions ) );
