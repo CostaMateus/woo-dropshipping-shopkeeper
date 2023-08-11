@@ -31,7 +31,7 @@ defined( "ABSPATH" ) || exit;
 						</th>
 						<td class="forminp" >
 							<input id="dsm_email_general" class="input-text regular-input" type="email" name="dsm_email_general" value="<?php echo get_option( "_dsm_email_general", true ); ?>" >
-							<p class="description" ><?php _e( "The supplier will create an account with this email. And it will be used to communicate with the supplier. If you leave it blank, the WP default will be used, inform the suppplier.", "woo_ds_shopkeeper" ); ?></p>
+							<p class="description" ><?php _e( "The supplier must create an account with this email. And this e-mail will be used for communication between the systems (shopkeeper/supplier). If you leave it blank, the default WP email will be used. Forward it to the supplier.", "woo_ds_shopkeeper" ); ?></p>
 							<p class="description" ><?php echo __( "Default: ", "woo_ds_shopkeeper" ) . get_bloginfo( "admin_email" ); ?></p>
 						</td>
 					</tr>
