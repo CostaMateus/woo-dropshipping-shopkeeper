@@ -149,5 +149,14 @@
             }
         }
 
+        // =========================================================
+
+        $( "#dsm-instructions-toggle" ).click( function( e ) {
+            if ( $( "#dsm-instructions" ).hasClass( "dsm-d-none" ) )
+                $( "#dsm-instructions" ).removeClass( "dsm-d-none" );
+            else
+                $( "#dsm-instructions" ).addClass( "dsm-d-none" );
+        } );
+
     } );
 }( jQuery ) );
