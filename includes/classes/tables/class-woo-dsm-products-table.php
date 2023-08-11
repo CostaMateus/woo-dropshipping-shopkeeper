@@ -62,14 +62,15 @@ class DSM_Products_table extends \WP_List_Table
     {
         return $columns = [
             // "cb"       => "",
-            "thumbnail"  => __( "Thumbnail",   "woo_ds_shopkeeper" ),
-            "name"       => __( "Name",        "woo_ds_shopkeeper" ),
-            "supplier"   => __( "Supplier",    "woo_ds_shopkeeper" ),
-            "sku"        => __( "SKU",         "woo_ds_shopkeeper" ),
-            "stock"      => __( "Stock",       "woo_ds_shopkeeper" ),
-            "price"      => __( "Price",       "woo_ds_shopkeeper" ),
-            "categories" => __( "Categories",  "woo_ds_shopkeeper" ),
-            "date"       => __( "Last change", "woo_ds_shopkeeper" ),
+            "thumbnail"  => __( "Thumbnail",      "woo_ds_shopkeeper" ),
+            "name"       => __( "Name",           "woo_ds_shopkeeper" ),
+            "supplier"   => __( "Supplier",       "woo_ds_shopkeeper" ),
+            "sku"        => __( "SKU",            "woo_ds_shopkeeper" ),
+            "stock"      => __( "Stock",          "woo_ds_shopkeeper" ),
+            "price"      => __( "Price",          "woo_ds_shopkeeper" ),
+            "s_price"    => __( "Supplier Price", "woo_ds_shopkeeper" ),
+            "categories" => __( "Categories",     "woo_ds_shopkeeper" ),
+            "date"       => __( "Last change",    "woo_ds_shopkeeper" ),
         ];
     }
 
@@ -86,6 +87,7 @@ class DSM_Products_table extends \WP_List_Table
             "supplier" => [ "supplier", false ],
             "sku"      => [ "sku",      false ],
             "price"    => [ "price",    false ],
+            "s_price"  => [ "s_price",  false ],
             "date"     => [ "date",     false ],
         ];
     }
@@ -404,34 +406,56 @@ class DSM_Products_table extends \WP_List_Table
      */
     public function column_price( $item )
     {
-        $class = "";
-        $value = $item->get_meta( "_dsm_supplier_status_price" );
-        $updt  = $item->get_meta( "_dsm_supplier_price_upd"    );
+        $r = wc_price( $item->get_regular_price() );
+        $s = wc_price( $item->get_sale_price()    );
 
-        if ( $value && $updt )
+        return ( $item->get_sale_price() ) ? "{$s} <del>{$r}</del>" : $r;
+    }
+
+    /**
+     * Supplier Price column
+     *
+     * @since   1.0.0
+     * @param   array|object $item
+     * @return  string
+     */
+    public function column_s_price( $item )
+    {
+        $class       = "";
+        $lastUpdate  = $item->get_meta( "_dsm_supplier_price_upd"      );
+
+        $htmlRegular = "";
+        $sttRegular  = $item->get_meta( "_dsm_supplier_status_regular" );
+        $regular     = $item->get_meta( "_dsm_supplier_regular_price"  );
+
+        $htmlSale    = "";
+        $sttSale     = $item->get_meta( "_dsm_supplier_status_sale"    );
+        $sale        = $item->get_meta( "_dsm_supplier_sale_price"     );
+
+        // Last update is more than two days old
+        if ( $lastUpdate && strtotime( $lastUpdate ) < strtotime( "-2 days" ) )
         {
-            if ( strtotime( $updt ) > strtotime( "-2 days" ) )
-            {
-                switch ( $value )
-                {
-                    case "up":
-                        $class = "upprice";
-                    break;
+            $s = wc_price( $sale    );
+            $r = wc_price( $regular );
 
-                    case "down":
-                        $class = "downprice";
-                    break;
-
-                    case "even":
-                        $class = "evenprice";
-                    break;
-                }
-
-                return "<mark class='{$class}'>{$item->get_price_html()}</mark>";
-            }
+            return ( $sale ) ? "{$s} <del>{$r}</del>" : $r;
         }
 
-        return $item->get_price_html();
+        if ( $regular )
+        {
+            $class       = ( $sttRegular == "up" ) ? "upprice" : ( ( $sttRegular == "down" ) ? "downprice" : "evenprice" );
+            $price       = wc_price( $regular );
+            $htmlRegular = "<mark class='{$class}'>{$price}</mark>";
+        }
+
+        if ( $sale )
+        {
+            $class       = ( $sttSale    == "up" ) ? "upprice" : ( ( $sttSale    == "down" ) ? "downprice" : "evenprice" );
+            $price       = wc_price( $sale );
+            $htmlSale    = "<mark class='{$class}'>{$price}</mark>";
+        }
+
+        return ( $htmlSale ) ? "{$htmlSale} <del>{$htmlRegular}</del>": $htmlRegular;
     }
 
     /**
