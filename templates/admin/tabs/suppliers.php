@@ -46,7 +46,7 @@ $nu_text = __( "Add New", "woo_ds_shopkeeper" );
 				<br>
 				<?php _e( "(2) When the product is out-of-stock at the supplier, it will change to draft status.", "woo_ds_shopkeeper" ); ?>
 				<br>
-				<?php _e( "(2) When the product returns to the supplier's stock, it will remain in draft status, requiring manual change.", "woo_ds_shopkeeper" ); ?>
+				<?php _e( "(3) When the product returns to the supplier's stock, it will remain in draft status, requiring manual change.", "woo_ds_shopkeeper" ); ?>
 			</p>
 			<p>
 				<?php _e( "- <strong>Import products</strong>:", "woo_ds_shopkeeper" ); ?>
