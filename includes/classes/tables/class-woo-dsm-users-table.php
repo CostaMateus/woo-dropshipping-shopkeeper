@@ -699,66 +699,27 @@ class DSM_Users_table extends \WP_List_Table
                          */
                         if ( $sync )
                         {
-                            $change   = false;
-                            $product  = wc_get_product( $prd_id );
+                            $change     = false;
+                            $product    = wc_get_product( $prd_id );
 
-                            $sttPrice = $product->get_meta( "_dsm_supplier_status_price"  );
-                            $regular  = $product->get_meta( "_dsm_supplier_regular_price" );
-                            $sale     = $product->get_meta( "_dsm_supplier_sale_price"    );
+                            $sttRegular = $product->get_meta( "_dsm_supplier_status_regular" );
+                            $regular    = $product->get_meta( "_dsm_supplier_regular_price"  );
+                            $newRegular = $aux_product[ "regular_price" ];
 
-                            /**
-                             * Check if has sale price
-                             */
-                            if ( $sale )
-                            {
-                                if ( $sale != $aux_product[ "sale_price" ] )
-                                {
-                                    $change = true;
-                                    $value  = ( $sale < $aux_product[ "sale_price" ] ) ? "down" : "up";
-
-                                    $product->update_meta_data( "_dsm_supplier_sale_price",   $aux_product[ "sale_price" ] );
-                                    $product->update_meta_data( "_dsm_supplier_status_price", $value                       );
-                                    $product->update_meta_data( "_dsm_supplier_price_upd",    date( "Y-m-d H:i:s" )        );
-                                }
-                                else
-                                {
-                                    if ( $sttPrice != "even" )
-                                    {
-                                        $change = true;
-                                        $value  = "even";
-
-                                        $product->update_meta_data( "_dsm_supplier_status_price", $value                );
-                                        $product->update_meta_data( "_dsm_supplier_price_upd",    date( "Y-m-d H:i:s" ) );
-                                    }
-                                }
-                            }
+                            $sttSale    = $product->get_meta( "_dsm_supplier_status_sale"    );
+                            $sale       = $product->get_meta( "_dsm_supplier_sale_price"     );
+                            $newSale    = $aux_product[ "sale_price"    ];
 
                             /**
-                             * Check if has regular price
+                             * Process regular price
                              */
-                            if ( $regular )
-                            {
-                                if ( $regular != $aux_product[ "regular_price" ] )
-                                {
-                                    $change = true;
-                                    $value  = ( $regular < $aux_product[ "regular_price" ] ) ? "down" : "up";
 
-                                    $product->update_meta_data( "_dsm_supplier_regular_price", $aux_product[ "regular_price" ] );
-                                    $product->update_meta_data( "_dsm_supplier_status_price",  $value                          );
-                                    $product->update_meta_data( "_dsm_supplier_price_upd",     date( "Y-m-d H:i:s" )           );
-                                }
-                                else
-                                {
-                                    if ( $sttPrice != "even" )
-                                    {
-                                        $change = true;
-                                        $value  = "even";
+                            $change     = DSM_Helper::process_regular_price( $regular, $newRegular, $sttRegular, $product );
 
-                                        $product->update_meta_data( "_dsm_supplier_status_price", $value                );
-                                        $product->update_meta_data( "_dsm_supplier_price_upd",    date( "Y-m-d H:i:s" ) );
-                                    }
-                                }
-                            }
+                            /**
+                             * Process sale price
+                             */
+                            $change     = DSM_Helper::process_sale_price( $regular, $sale, $newSale, $sttSale, $product );
 
                             /**
                              * Check if stock status has changed
@@ -810,11 +771,12 @@ class DSM_Users_table extends \WP_List_Table
 
                         $product = wc_get_product( $response->data[ "id" ] );
 
-                        $product->update_meta_data( "_dsm_supplier",               $user_id                );
-                        $product->update_meta_data( "_dsm_supplier_regular_price", $product->regular_price );
-                        $product->update_meta_data( "_dsm_supplier_sale_price",    $product->sale_price    );
-                        $product->update_meta_data( "_dsm_supplier_sku",           $product->sku           );
-                        $product->update_meta_data( "_dsm_supplier_status_price",  "even"                  );
+                        $product->update_meta_data( "_dsm_supplier",                $user_id                );
+                        $product->update_meta_data( "_dsm_supplier_regular_price",  $product->regular_price );
+                        $product->update_meta_data( "_dsm_supplier_sale_price",     $product->sale_price    );
+                        $product->update_meta_data( "_dsm_supplier_sku",            $product->sku           );
+                        $product->update_meta_data( "_dsm_supplier_status_regular", "even"                  );
+                        $product->update_meta_data( "_dsm_supplier_status_sale",    "even"                  );
 
                         try
                         {
