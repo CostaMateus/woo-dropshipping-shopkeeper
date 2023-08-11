@@ -598,7 +598,9 @@ class DSM_Users_table extends \WP_List_Table
                 $email    = ( !empty( $email ) && is_email( $email ) ) ? $email : get_bloginfo( "admin_email" );
 
                 $args     = [
-                    "headers" => [
+                    "timeout"   => 60,
+                    "sslverify" => false,
+                    "headers"   => [
                         "_dsm_email"      => $email,
                         "_dsm_supplier"   => $secret_s,
                         "_dsm_shopkeeper" => $secret,
