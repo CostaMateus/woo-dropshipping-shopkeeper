@@ -137,4 +137,102 @@ class DSM_Helper
 
         return false;
     }
+
+    /**
+     * Process regular price - sync
+     *
+     * @since   1.0.0
+     * @param   string|float  $regular
+     * @param   string|float  $newPrice
+     * @param   string        $status
+     * @param   object        $product
+     * @return  bool
+     */
+    public static function process_regular_price( $regular, $newPrice, $status, &$product )
+    {
+        $change = false;
+
+        if ( $regular != $newPrice )
+        {
+            $change    = true;
+            $newStatus = ( $regular > $newPrice ) ? "down" : "up";
+
+            $product->update_meta_data( "_dsm_supplier_regular_price", $newPrice );
+        }
+        else
+        {
+            if ( $status != "even" )
+            {
+                $change    = true;
+                $newStatus = "even";
+            }
+        }
+
+        if ( $change )
+        {
+            $log[ "incoming_data" ][ "status_r" ] = $newStatus;
+
+            $product->update_meta_data( "_dsm_supplier_status_regular", $newStatus            );
+            $product->update_meta_data( "_dsm_supplier_price_upd",      date( "Y-m-d H:i:s" ) );
+        }
+
+        return $change;
+    }
+
+    /**
+     * Process sale price - sync
+     *
+     * @since   1.0.0
+     * @param   string|float  $regular
+     * @param   string|float  $sale
+     * @param   string        $newPrice
+     * @param   string        $status
+     * @param   object        $product
+     * @return  bool
+     */
+    public static function process_sale_price( $regular, $sale, $newPrice, $status, &$product )
+    {
+        $change = false;
+
+        if ( $sale && $newPrice )
+        {
+            if ( $sale != $newPrice )
+            {
+                $change    = true;
+                $newStatus = ( $sale > $newPrice ) ? "down" : "up";
+                $product->update_meta_data( "_dsm_supplier_sale_price", $newPrice );
+            }
+            else
+            {
+                if ( $status != "even" )
+                {
+                    $change    = true;
+                    $newStatus = "even";
+                }
+            }
+        }
+        elseif ( $sale && !$newPrice )
+        {
+            $change    = true;
+            $newStatus = "even";
+            $product->update_meta_data( "_dsm_supplier_sale_price", null );
+        }
+        elseif ( !$sale && $newPrice )
+        {
+            $change    = true;
+            $newStatus = ( $regular > $newPrice ) ? "down" : "up";
+
+            $product->update_meta_data( "_dsm_supplier_sale_price", $newPrice );
+        }
+
+        if ( $change )
+        {
+            $log[ "incoming_data" ][ "status_s" ] = $newStatus;
+
+            $product->update_meta_data( "_dsm_supplier_status_sale", $newStatus            );
+            $product->update_meta_data( "_dsm_supplier_price_upd",   date( "Y-m-d H:i:s" ) );
+        }
+
+        return $change;
+    }
 }
