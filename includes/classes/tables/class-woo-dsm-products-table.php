@@ -12,11 +12,20 @@ namespace Dropshipping_Shopkeeper\Classes\Tables;
 class DSM_Products_table extends \WP_List_Table
 {
     /**
-     * WC Products
+     * Products data
      *
-     * @var array|stdClass
+     * @since   1.0.0
+     * @var     array|stdClass
      */
     protected $products;
+
+    /**
+     * Users data
+     *
+     * @since   1.0.0
+     * @var     array|stdClass
+     */
+    protected $users;
 
     /**
      * Undocumented function
@@ -28,20 +37,27 @@ class DSM_Products_table extends \WP_List_Table
     {
         parent::__construct();
 
+        $this->load_users();
+        $this->load_products();
+    }
+
+    /**
+     * Load the products data
+     *
+     * @since   1.0.0
+     * @return  void
+     */
+    private function load_products()
+    {
         $this->products = wc_get_products( [
             "limit"        => -1,
             "meta_key"     => "_dsm_supplier",
             "meta_compare" => "EXISTS",
         ] );
 
-		$users          = get_users( [
-			"role"  => "supplier",
-			"order" => "ASC"
-		] );
-
         foreach ( $this->products as &$product )
         {
-            foreach ( $users as $user )
+            foreach ( $this->users as $user )
             {
                 if ( $user->ID == $product->get_meta( "_dsm_supplier" ) )
                 {
@@ -50,6 +66,20 @@ class DSM_Products_table extends \WP_List_Table
                 }
             }
         }
+    }
+
+    /**
+     * Load the users data
+     *
+     * @since   1.0.0
+     * @return  void
+     */
+    private function load_users()
+    {
+		$this->users = get_users( [
+			"role"  => "supplier",
+			"order" => "ASC"
+		] );
     }
 
     /**
@@ -110,8 +140,8 @@ class DSM_Products_table extends \WP_List_Table
 
         if ( $orderby == "date" )
         {
-            $ta     = strtotime( $a->get_date_modified() );
-            $tb     = strtotime( $b->get_date_modified() );
+            $ta = strtotime( $a->get_date_modified() );
+            $tb = strtotime( $b->get_date_modified() );
 
             if ( strcasecmp( $ta, $tb ) !== 0 )
             {
