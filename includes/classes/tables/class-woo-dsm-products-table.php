@@ -61,7 +61,7 @@ class DSM_Products_table extends \WP_List_Table
             {
                 if ( $user->ID == $product->get_meta( "_dsm_supplier" ) )
                 {
-                    $product->supplier = "{$user->user_firstname} {$user->user_lastname}";
+                    $product->supplier = $user->user_login;
                     break;
                 }
             }
