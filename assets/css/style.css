@@ -230,3 +230,6 @@ table.wp-list-table .column-price,
 table.wp-list-table .column-s_price {
     width: 20ch !important;
 }
+table.wp-list-table .column-woo_ds_shopkeeper_supplier {
+    width: 11% !important;
+}
