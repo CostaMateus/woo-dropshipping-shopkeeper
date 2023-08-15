@@ -92,15 +92,15 @@ class DSM_Products_table extends \WP_List_Table
     {
         return $columns = [
             // "cb"       => "",
-            "thumbnail"  => __( "Thumbnail",      "woo_ds_shopkeeper" ),
-            "name"       => __( "Name",           "woo_ds_shopkeeper" ),
-            "supplier"   => __( "Supplier",       "woo_ds_shopkeeper" ),
-            "sku"        => __( "SKU",            "woo_ds_shopkeeper" ),
-            "stock"      => __( "Stock",          "woo_ds_shopkeeper" ),
-            "price"      => __( "Price",          "woo_ds_shopkeeper" ),
-            "s_price"    => __( "Supplier Price", "woo_ds_shopkeeper" ),
-            "categories" => __( "Categories",     "woo_ds_shopkeeper" ),
-            "date"       => __( "Last change",    "woo_ds_shopkeeper" ),
+            "thumbnail"  => __( "Thumbnail",         "woo_ds_shopkeeper" ),
+            "name"       => __( "Name",              "woo_ds_shopkeeper" ),
+            "supplier"   => __( "Username Supplier", "woo_ds_shopkeeper" ),
+            "sku"        => __( "SKU",               "woo_ds_shopkeeper" ),
+            "stock"      => __( "Stock",             "woo_ds_shopkeeper" ),
+            "price"      => __( "Price",             "woo_ds_shopkeeper" ),
+            "s_price"    => __( "Supplier Price",    "woo_ds_shopkeeper" ),
+            "categories" => __( "Categories",        "woo_ds_shopkeeper" ),
+            "date"       => __( "Last change",       "woo_ds_shopkeeper" ),
         ];
     }
 
