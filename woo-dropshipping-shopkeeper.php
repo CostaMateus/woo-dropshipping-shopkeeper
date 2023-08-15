@@ -265,6 +265,8 @@ class Dropshipping_Shopkeeper
 		add_filter( "plugin_action_links_" . plugin_basename( self::FILE ), [ $this, "plugin_action_links"           ] );
 		add_filter( "manage_users_columns",                                 [ $this, "add_column_title_user"         ] );
 		add_filter( "manage_users_custom_column",                           [ $this, "add_column_content_user"       ], 10, 3 );
+		add_filter( "manage_edit-product_columns",                          [ $this, "add_column_title_supplier"     ] );
+		add_filter( "manage_posts_custom_column",                           [ $this, "add_column_content_supplier"   ], 10, 3 );
 	}
 
 	/**
@@ -572,6 +574,53 @@ class Dropshipping_Shopkeeper
 		}
 
 		return $val;
+	}
+
+	/**
+	 * Adds 'Suppler' column header to 'All Products' page immediately after 'Categories' column.
+	 *
+	 * @since 	1.0.0
+	 * @param 	array 	$columns
+	 * @return 	array	$new_columns
+	 */
+	public function add_column_title_supplier( $columns )
+	{
+		$new_columns = [];
+
+		foreach ( $columns as $column_name => $column_info )
+		{
+			$new_columns[ $column_name ] = $column_info;
+
+			if ( "product_cat" === $column_name )
+				$new_columns[ self::DOMAIN . "_supplier" ] = __( "Supplier", "woo_ds_shopkeeper" );
+		}
+
+		return $new_columns;
+	}
+
+	/**
+	 * Adds 'Supplier' column content to 'All Products' page immediately after 'Categories' column.
+	 *
+	 * @since 	1.0.0
+	 * @param 	mixed 	$val
+	 * @param 	string 	$column
+	 * @param 	string 	$product_id
+	 * @return 	mixed 	$val
+	 */
+	public function add_column_content_supplier( $column, $product_id )
+	{
+		if ( $column === self::DOMAIN . "_supplier" )
+		{
+			$product     = wc_get_product( $product_id );
+			$supplier_id = $product->get_meta( "_dsm_supplier" );
+
+			if ( $supplier_id )
+			{
+				$supplier = get_user_by( "id", $supplier_id );
+
+				echo $supplier->user_login;
+			}
+		}
 	}
 
 	/**
