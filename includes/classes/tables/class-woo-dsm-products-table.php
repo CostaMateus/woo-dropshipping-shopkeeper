@@ -9,6 +9,8 @@
 
 namespace Dropshipping_Shopkeeper\Classes\Tables;
 
+use Dropshipping_Shopkeeper\Classes\Helpers\DSM_Helper;
+
 class DSM_Products_table extends \WP_List_Table
 {
     /**
@@ -28,6 +30,14 @@ class DSM_Products_table extends \WP_List_Table
     protected $users;
 
     /**
+     * User data
+     *
+     * @since   1.0.0
+     * @var     array|stdClass
+     */
+    protected $preview = null;
+
+    /**
      * Undocumented function
      *
      * @since   1.0.0
@@ -37,8 +47,21 @@ class DSM_Products_table extends \WP_List_Table
     {
         parent::__construct();
 
-        $this->load_users();
-        $this->load_products();
+        if ( !isset( $_GET[ "uid" ] ) )
+        {
+            $this->load_users();
+            $this->load_products();
+        }
+        else
+        {
+            $this->preview  = get_user_by( "id", $_GET[ "uid" ] );
+            $this->products = $this->get_products();
+        }
+    }
+
+    public function get_user()
+    {
+        return $this->preview;
     }
 
     /**
@@ -90,9 +113,9 @@ class DSM_Products_table extends \WP_List_Table
      */
     public function get_columns()
     {
-        return $columns = [
-            // "cb"       => "",
-            "thumbnail"  => __( "Thumbnail",         "woo_ds_shopkeeper" ),
+        $columns = [
+            "cb"         => "<input type='checkbox' name='users[]' />",
+            "thumbnail"  => "<span class='wc-image tips'></span>",
             "name"       => __( "Name",              "woo_ds_shopkeeper" ),
             "supplier"   => __( "Username Supplier", "woo_ds_shopkeeper" ),
             "sku"        => __( "SKU",               "woo_ds_shopkeeper" ),
@@ -102,6 +125,17 @@ class DSM_Products_table extends \WP_List_Table
             "categories" => __( "Categories",        "woo_ds_shopkeeper" ),
             "date"       => __( "Last change",       "woo_ds_shopkeeper" ),
         ];
+
+        if ( empty( $this->preview ) ) unset( $columns[ "cb" ] );
+
+        if ( $this->preview )
+        {
+            unset( $columns[ "supplier" ] );
+            unset( $columns[ "s_price"  ] );
+            unset( $columns[ "date"     ] );
+        }
+
+        return $columns;
     }
 
     /**
@@ -112,7 +146,7 @@ class DSM_Products_table extends \WP_List_Table
      */
     public function get_sortable_columns()
     {
-        return $sortable = [
+        $sortable = [
             "name"     => [ "name",     false ],
             "supplier" => [ "supplier", false ],
             "sku"      => [ "sku",      false ],
@@ -120,6 +154,15 @@ class DSM_Products_table extends \WP_List_Table
             "s_price"  => [ "s_price",  false ],
             "date"     => [ "date",     false ],
         ];
+
+        if ( $this->preview )
+        {
+            unset( $columns[ "supplier" ] );
+            unset( $columns[ "s_price"  ] );
+            unset( $columns[ "date"     ] );
+        }
+
+        return $sortable;
     }
 
     /**
@@ -138,7 +181,7 @@ class DSM_Products_table extends \WP_List_Table
         if ( $_GET[ "orderby" ] === "name" ) $orderby = "get_name";
         if ( $_GET[ "orderby" ] === "sku"  ) $orderby = "get_sku";
 
-        if ( $orderby == "date" )
+        if ( $orderby == "date" && !$this->preview )
         {
             $ta = strtotime( $a->get_date_modified() );
             $tb = strtotime( $b->get_date_modified() );
@@ -156,8 +199,19 @@ class DSM_Products_table extends \WP_List_Table
 
         if ( $orderby == "price" )
         {
-            $pa = ( float ) $a->get_price();
-            $pb = ( float ) $b->get_price();
+            if ( $this->preview )
+            {
+                $price_a = ( $a->sale_price ) ? $a->sale_price : $a->regular_price;
+                $price_b = ( $a->sale_price ) ? $a->sale_price : $a->regular_price;
+
+                $pa = ( float ) $price_a;
+                $pb = ( float ) $price_b;
+            }
+            else
+            {
+                $pa = ( float ) $a->get_price();
+                $pb = ( float ) $b->get_price();
+            }
 
             if ( strcasecmp( $pa, $pb ) !== 0 )
             {
@@ -170,7 +224,7 @@ class DSM_Products_table extends \WP_List_Table
             $orderby = "supplier";
         }
 
-        if ( $orderby == "supplier" )
+        if ( $orderby == "supplier" && !$this->preview )
         {
             $s1     = $a->get_meta( "_dsm_supplier" );
             $s2     = $a->get_meta( "_dsm_supplier" );
@@ -181,7 +235,7 @@ class DSM_Products_table extends \WP_List_Table
                 return ( $order === "asc" ) ? $result : -$result;
         }
 
-        $columns = [ "get_name", "get_sku" ];
+        $columns = ( $this->preview ) ? [ "name", "sku" ] : [ "get_name", "get_sku" ];
 
         foreach ( $columns as $column )
         {
@@ -199,11 +253,14 @@ class DSM_Products_table extends \WP_List_Table
      */
     public function get_bulk_actions()
     {
-        // $actions = [
-        //     "delete" => "Delete"
-        // ];
-        //
-        // return $actions;
+        if ( $this->preview )
+        {
+            $actions = [
+                "import" => __( "Import products",  "woo_ds_shopkeeper" ),
+            ];
+
+            return $actions;
+        }
     }
 
     /**
@@ -280,7 +337,8 @@ class DSM_Products_table extends \WP_List_Table
      */
     public function column_cb( $item )
     {
-        // return sprintf( "<input type='checkbox' name='users[]' value='%s' />", $item->ID );
+        if ( $this->preview )
+            return sprintf( "<input type='checkbox' name='users[]' value='%s' />", $item->ID );
     }
 
     /**
@@ -292,11 +350,26 @@ class DSM_Products_table extends \WP_List_Table
      */
     public function column_thumbnail( $item )
     {
+        $default = "<img width='40' height='40' src='/wp-content/uploads/woocommerce-placeholder-150x150.png' class='attachment-40x40 size-40x40'
+            decoding='async' loading='lazy' sizes='(max-width: 40px) 100vw, 40px' >";
+
+        if ( $this->preview )
+        {
+            if ( $item->images )
+            {
+                $src = $item->images[ 0 ][ "src" ];
+
+                return "<img width='40' height='40' src='{$src}' class='attachment-40x40 size-40x40'
+                    decoding='async' loading='lazy' sizes='(max-width: 40px) 100vw, 40px' >";
+            }
+
+            return $default;
+        }
+
         if ( $item->get_image_id() )
             return wp_get_attachment_image( $item->get_image_id(), [ 40, 40 ], true );
 
-        return "<img width='40' height='40' src='/wp-content/uploads/woocommerce-placeholder-150x150.png' class='attachment-40x40 size-40x40'
-            decoding='async' loading='lazy' sizes='(max-width: 40px) 100vw, 40px' >";
+        return $default;
     }
 
     /**
@@ -308,27 +381,32 @@ class DSM_Products_table extends \WP_List_Table
      */
     public function column_name( $item )
     {
+        $product_name    = ( $this->preview ) ? $item->name   : $item->get_name();
+
+        if ( $this->preview ) return "<strong>{$product_name}</strong>";
+
+        $status          = ( $this->preview ) ? $item->status : $item->get_status();
         $class           = "";
-        $status          = [
+        $arr_status      = [
             "publish" => __( "Published",      "woo_ds_shopkeeper" ),
             "pending" => __( "Pending review", "woo_ds_shopkeeper" ),
             "draft"   => __( "Draft",          "woo_ds_shopkeeper" ),
             "private" => __( "Private",        "woo_ds_shopkeeper" ),
         ];
 
-        if ( $item->get_status() == "publish" )
+        if ( $status == "publish" )
             $class = "ispublish";
 
-        if ( $item->get_status() == "draft"   )
+        if ( $status == "draft"   )
             $class = "isdraft";
 
-        $status          = isset( $status[ $item->get_status() ] ) ? $status[ $item->get_status() ] : ucfirst( $item->get_status() ) ;
+        $status          = isset( $arr_status[ $status ] ) ? $arr_status[ $status ] : ucfirst( $status ) ;
         $status          = "<small class='{$class}' >{$status}</small>";
+
+        $product_name   .= " - {$status}";
 
         $actions         = [];
         $actions[ "id" ] = "ID: {$item->get_id()}";
-
-        $product_name    = $item->get_name() . " - {$status}";
 
         if ( current_user_can( "edit_posts" ) )
         {
@@ -388,6 +466,9 @@ class DSM_Products_table extends \WP_List_Table
      */
     public function column_sku( $item )
     {
+        if ( $this->preview )
+            return $item->sku;
+
         return $item->get_sku();
     }
 
@@ -403,8 +484,8 @@ class DSM_Products_table extends \WP_List_Table
         $stock        = "";
         $class        = "";
 
-        $stock_status = $item->get_stock_status();
-        $can_manage   = $item->get_manage_stock();
+        $stock_status = ( $this->preview ) ? $item->stock_status : $item->get_stock_status();
+        $can_manage   = ( $this->preview ) ? $item->manage_stock : $item->get_manage_stock();
 
         switch ( $stock_status )
         {
@@ -428,7 +509,7 @@ class DSM_Products_table extends \WP_List_Table
 
         if ( $can_manage )
         {
-            $qtty = $item->get_stock_quantity();
+            $qtty = ( $this->preview ) ? $item->stock_quantity : $item->get_stock_quantity();
             $text = "<mark class='{$class}'>{$stock}</mark> ({$qtty})";
         }
 
@@ -444,10 +525,20 @@ class DSM_Products_table extends \WP_List_Table
      */
     public function column_price( $item )
     {
-        $r = wc_price( $item->get_regular_price() );
-        $s = wc_price( $item->get_sale_price()    );
+        if ( $this->preview )
+        {
+            $sp = $item->sale_price;
+            $r  = wc_price( $item->regular_price );
+            $s  = wc_price( $item->sale_price    );
+        }
+        else
+        {
+            $sp = $item->get_sale_price();
+            $r  = wc_price( $item->get_regular_price() );
+            $s  = wc_price( $item->get_sale_price()    );
+        }
 
-        return ( $item->get_sale_price() ) ? "{$s} <del>{$r}</del>" : $r;
+        return ( $sp ) ? "{$s} <del>{$r}</del>" : $r;
     }
 
     /**
@@ -505,6 +596,16 @@ class DSM_Products_table extends \WP_List_Table
      */
     public function column_categories( $item )
     {
+        if ( $this->preview )
+        {
+            $cats = "";
+
+            foreach ( $item->categories as $cat )
+                $cats .= $cat[ "name" ] . ( $cat[ "name" ] != end( $item->categories )[ "name" ] ? ", " : "" );
+
+            return $cats;
+        }
+
         return $item->get_categories( ", ", " " . _n( " ", " ", sizeof( get_the_terms( $item->get_id(), "product_cat" ) ), "woocommerce" ) . " ", " " );
     }
 
@@ -555,5 +656,87 @@ class DSM_Products_table extends \WP_List_Table
 
             $this->products = $products;
         }
+    }
+
+    public function get_products()
+    {
+        $url      = get_user_meta( $this->preview->ID, "_dsm_url"     , true );
+        $secret   = get_user_meta( $this->preview->ID, "_dsm_secret"  , true );
+        $secret_s = get_user_meta( $this->preview->ID, "_dsm_secret_s", true );
+
+        if ( !$url || !$secret || !$secret_s ) return [];
+
+        $email    = get_option( "_dsm_email_general", true );
+        $email    = ( !empty( $email ) && is_email( $email ) ) ? $email : get_bloginfo( "admin_email" );
+
+        $args     = [
+            "timeout"   => 60,
+            "sslverify" => false,
+            "headers"   => [
+                "_dsm_email"      => $email,
+                "_dsm_supplier"   => $secret_s,
+                "_dsm_shopkeeper" => $secret,
+            ]
+        ];
+
+        $url      = "{$url}/wp-json/dsm/v1/products";
+
+        /**
+         * Get supplier products
+         */
+        $response = wp_remote_get( $url, $args );
+
+        if ( is_wp_error( $response ) )
+        {
+            $log  = "ERROR - Supplier ID {$this->user->ID} - api_query_error - " . $response->get_error_message();
+            $log .= " - " . json_encode( [ "url" => $url ] );
+            \Dropshipping_Shopkeeper::log( $log, true );
+
+            return [];
+        }
+        else
+        {
+            $data = json_decode( $response[ "body" ] );
+
+            if ( $data->code == "dsm_rest_cannot_view" )
+            {
+                // call error / no post
+                return [];
+            }
+            else if ( $data->code == "dsm_rest_products_v1_invalid_email" )
+            {
+                // config error / account not created
+                return [];
+            }
+            else if ( $data->code == "dsm_rest_products_v1_invalid_secret" )
+            {
+                // config error / invalid access key
+                return [];
+            }
+        }
+
+        $products = [];
+
+        try
+        {
+            foreach ( $data->data as $product )
+            {
+                if ( empty( $product->sku ) ) continue;
+
+                /**
+                 * Translate products
+                 */
+                $products[] = ( object ) DSM_Helper::translate_product( $product, true );
+            }
+        }
+        catch ( \Exception $e )
+        {
+            $log = "ERROR - Supplier ID {$this->user->ID} - translate_product - " . $e->getMessage();
+            \Dropshipping_Shopkeeper::log( $log, true );
+
+            return [];
+        }
+
+        return $products;
     }
 }
