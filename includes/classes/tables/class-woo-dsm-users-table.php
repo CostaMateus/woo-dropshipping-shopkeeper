@@ -162,6 +162,7 @@ class DSM_Users_table extends \WP_List_Table
     {
         $actions = [
             "sync"         => __( "Sync stock",       "woo_ds_shopkeeper" ),
+            "preview"      => __( "Preview products", "woo_ds_shopkeeper" ),
             "import"       => __( "Import products",  "woo_ds_shopkeeper" ),
             "del_products" => __( "Delete products",  "woo_ds_shopkeeper" ),
             "del_users"    => __( "Delete suppliers", "woo_ds_shopkeeper" )
@@ -248,19 +249,20 @@ class DSM_Users_table extends \WP_List_Table
         switch ( $action )
         {
             case "sync":
-                $this->process_b_a_sync();
+            case "import":
+                $this->process_b_a_products( $_POST[ "users" ], $action );
             break;
 
-            case "import":
-                $this->process_b_a_import();
+            case "preview":
+                $this->process_b_a_preview( $_POST[ "users" ][ 0 ] );
             break;
 
             case "del_products":
-                $this->process_b_a_del_products();
+                $this->process_b_a_del_products( $_POST[ "users" ] );
             break;
 
             case "del_users":
-                $this->process_b_a_del_users();
+                $this->process_b_a_del_users( $_POST[ "users" ] );
             break;
         }
     }
@@ -293,7 +295,11 @@ class DSM_Users_table extends \WP_List_Table
     public function column_cb( $item )
     {
         $meta   = $item->usermeta;
-        $prefix = $meta[ "_dsm_sku_prefix" ] ? "" : "disabled";
+        $key1   = $meta[ "_dsm_secret"     ];
+        $key2   = $meta[ "_dsm_secret_s"   ];
+        $sku    = $meta[ "_dsm_sku_prefix" ];
+
+        $prefix = ( $sku && $key1 && $key2 ) ? "" : "disabled";
 
         return sprintf( "<input type='checkbox' name='users[]' value='%s' $prefix />", $item->ID );
     }
@@ -439,133 +445,28 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
-     * Sync products
+     * Show preview product of supplier
      *
      * @since   1.0.0
+     * @param   int $uid
      * @return  void
      */
-    public function process_b_a_sync()
+    public function process_b_a_preview( $uid )
     {
-        return $this->import_sync_products( $_POST[ "users" ], true );
-    }
-
-    /**
-     * Import products
-     *
-     * @since   1.0.0
-     * @return  void
-     */
-    public function process_b_a_import()
-    {
-        return $this->import_sync_products( $_POST[ "users" ] );
-    }
-
-    /**
-     * Delete products of supplier
-     *
-     * @since   1.0.0
-     * @return  void
-     */
-    public function process_b_a_del_products()
-    {
-        $users = $_POST[ "users" ];
-
-        if ( !empty( $users ) && !empty( $this->products ) )
-        {
-            foreach ( $users as $user_id )
-            {
-                $count = 0;
-
-                foreach ( $this->products as $product )
-                {
-                    $meta_id = $product->get_meta( "_dsm_supplier" );
-
-                    if ( !empty( $meta_id ) && $meta_id == $user_id )
-                    {
-                        if ( $product->is_type( "variable" ) )
-                        {
-                            foreach ( $product->get_children() as $child_id )
-                            {
-                                $child = wc_get_product( $child_id );
-                                $child->delete( true );
-                            }
-                        }
-                        elseif ( $product->is_type( "grouped" ) )
-                        {
-                            foreach ( $product->get_children() as $child_id )
-                            {
-                                $child = wc_get_product( $child_id );
-                                $child->set_parent_id( 0 );
-                                $child->save();
-                            }
-                        }
-
-                        $deleted = $product->delete( true );
-
-                        if ( $deleted ) $count++;
-                    }
-                }
-
-                $log   = "INFO - Supplier ID {$user_id} - deleted {$count} products";
-                \Dropshipping_Shopkeeper::log( $log );
-            }
-        }
-    }
-
-    /**
-     * Delete products and the supplier.
-     *
-     * @since   1.0.0
-     * @return  void
-     */
-    public function process_b_a_del_users()
-    {
-        $this->process_b_a_del_products();
-
-        $users = $_POST[ "users" ];
-
-        if ( !empty( $users ) )
-        {
-            foreach ( $users as $user_id )
-            {
-                delete_user_meta( $user_id, "_dsm_url"        );
-                delete_user_meta( $user_id, "_dsm_secret_s"   );
-                delete_user_meta( $user_id, "_dsm_sku_prefix" );
-
-                wp_delete_user( $user_id );
-
-                $log = "INFO - Deleted supplier ID {$user_id}";
-                \Dropshipping_Shopkeeper::log( $log );
-            }
-        }
-    }
-
-    /**
-     * Response for process
-     *
-     * @since   1.0.0
-     * @param   string  $type
-     * @param   array   $errors
-     * @return  void
-     */
-    private function redirect( $type, $errors )
-    {
-        $data = http_build_query( [ "data" => $errors ] );
-
-        $url  = admin_url( "admin.php?page=woo_ds_shopkeeper&tab=suppliers&{$type}_message=DRPWE&{$data}" );
+        $url = admin_url( "admin.php?page=woo_ds_shopkeeper&tab=suppliers&uid={$uid}" );
         wp_redirect( $url );
         return;
     }
 
     /**
-     * Import or sync products
+     * Sync, preview or import products
      *
      * @since   1.0.0
-     * @param   array  $users
-     * @param   bool   $sync
+     * @param   array   $users
+     * @param   string  $action
      * @return  void
      */
-    private function import_sync_products( $users, $sync = false )
+    private function process_b_a_products( $users, $action )
     {
         if ( !empty( $users ) )
         {
@@ -697,7 +598,7 @@ class DSM_Users_table extends \WP_List_Table
                         /**
                          * Check if is for sync
                          */
-                        if ( $sync )
+                        if ( $action == "sync" )
                         {
                             $change     = false;
                             $product    = wc_get_product( $prd_id );
@@ -755,7 +656,7 @@ class DSM_Users_table extends \WP_List_Table
                     /**
                      * Product is for import
                      */
-                    if ( !$sync )
+                    if ( $action == "import" )
                     {
                         $request->set_body_params( $aux_product );
                         $response = $controller->create_item( $request );
@@ -815,5 +716,100 @@ class DSM_Users_table extends \WP_List_Table
 
             return $this->redirect( "error", $errors );
         }
+    }
+
+    /**
+     * Delete products of supplier
+     *
+     * @since   1.0.0
+     * @param   array   $users
+     * @return  void
+     */
+    public function process_b_a_del_products( $users )
+    {
+        if ( !empty( $users ) && !empty( $this->products ) )
+        {
+            foreach ( $users as $user_id )
+            {
+                $count = 0;
+
+                foreach ( $this->products as $product )
+                {
+                    $meta_id = $product->get_meta( "_dsm_supplier" );
+
+                    if ( !empty( $meta_id ) && $meta_id == $user_id )
+                    {
+                        if ( $product->is_type( "variable" ) )
+                        {
+                            foreach ( $product->get_children() as $child_id )
+                            {
+                                $child = wc_get_product( $child_id );
+                                $child->delete( true );
+                            }
+                        }
+                        elseif ( $product->is_type( "grouped" ) )
+                        {
+                            foreach ( $product->get_children() as $child_id )
+                            {
+                                $child = wc_get_product( $child_id );
+                                $child->set_parent_id( 0 );
+                                $child->save();
+                            }
+                        }
+
+                        $deleted = $product->delete( true );
+
+                        if ( $deleted ) $count++;
+                    }
+                }
+
+                $log   = "INFO - Supplier ID {$user_id} - deleted {$count} products";
+                \Dropshipping_Shopkeeper::log( $log );
+            }
+        }
+    }
+
+    /**
+     * Delete products and the supplier.
+     *
+     * @since   1.0.0
+     * @param   array   $users
+     * @return  void
+     */
+    public function process_b_a_del_users( $users )
+    {
+        $this->process_b_a_del_products( $users );
+
+        if ( !empty( $users ) )
+        {
+            foreach ( $users as $user_id )
+            {
+                delete_user_meta( $user_id, "_dsm_url"        );
+                delete_user_meta( $user_id, "_dsm_secret_s"   );
+                delete_user_meta( $user_id, "_dsm_sku_prefix" );
+
+                wp_delete_user( $user_id );
+
+                $log = "INFO - Deleted supplier ID {$user_id}";
+                \Dropshipping_Shopkeeper::log( $log );
+            }
+        }
+    }
+
+    /**
+     * Response for process
+     *
+     * @since   1.0.0
+     * @param   string  $type
+     * @param   array   $data
+     * @return  void
+     */
+    private function redirect( $type, $data )
+    {
+        $data = http_build_query( [ "data" => $data ] );
+
+        $url  = admin_url( "admin.php?page=woo_ds_shopkeeper&tab=suppliers&{$type}_message=DRPWE&{$data}" );
+        wp_redirect( $url );
+        return;
     }
 }
