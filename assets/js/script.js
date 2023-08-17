@@ -71,8 +71,8 @@
             const page   = params.has( "page" ) ? params.get( "page" ) : 0;
             if ( page == 0 || page != "woo_ds_shopkeeper" ) return;
 
-            const tab    = params.has( "tab" ) ? params.get( "tab" ) : 0;
-            if ( tab  == 0 || tab  != "suppliers" ) return;
+            const tab    = params.has( "tab"  ) ? params.get( "tab"  ) : 0;
+            if ( tab  == 0 || tab  != "suppliers"         ) return;
 
             e.preventDefault();
 
@@ -101,6 +101,17 @@
                     $( "#dsm-modal-load" ).removeClass( "dsm-d-none" );
                     $( "#dsm-users-list-table-form" ).submit();
                 }
+            }
+            else if ( a == "preview" )
+            {
+                if ( users.length > 1 )
+                {
+                    alert( woo_dsm_params.messages.preview_pdcts );
+                    return;
+                }
+
+                $( "#dsm-modal-load" ).removeClass( "dsm-d-none" );
+                $( "#dsm-users-list-table-form" ).submit();
             }
             else
             {
