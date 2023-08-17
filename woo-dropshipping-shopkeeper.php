@@ -458,9 +458,9 @@ class Dropshipping_Shopkeeper
 			[
 				"ajax_url" => admin_url( "admin-ajax.php" ),
 				"messages" => [
-					"del_users"     => __( "This action will delete the selected supplier user as well as all of its products. Click OK to confirm this action.", "woo_ds_shopkeeper" ),
-					"del_products"  => __( "This action will delete all products from the selected supplier. Click OK to confirm this action.", "woo_ds_shopkeeper" ),
-					"select_users"  => __( "Please select at least one supplier, for any action.", "woo_ds_shopkeeper" ),
+					"del_users"    => __( "This action will delete the selected supplier user as well as all of its products. Click OK to confirm this action.", "woo_ds_shopkeeper" ),
+					"del_products" => __( "This action will delete all products from the selected supplier. Click OK to confirm this action.", "woo_ds_shopkeeper" ),
+					"select_users" => __( "Please select at least one supplier, for any action.", "woo_ds_shopkeeper" ),
 				]
 			]
 		);
@@ -855,7 +855,8 @@ class Dropshipping_Shopkeeper
 	/**
 	 * Save general tab settings
 	 *
-	 * @return void
+	 * @since 	1.0.0
+	 * @return 	void
 	 */
 	public static function save_general_tab_settings()
 	{
