@@ -18,7 +18,7 @@ class DSM_Helper
      * @param   object   $product
      * @return  array
      */
-    public static function translate_product( $product )
+    public static function translate_product( $product, $preview = false )
     {
         $attributes = [];
         $categories = [];
@@ -28,21 +28,24 @@ class DSM_Helper
         {
             foreach ( $product->categories as $category )
             {
-                $cat = get_category_by_slug( $category->slug );
+                if ( $preview )
+                {
+                    $categories[] = [ "name" => $category->name ];
+                    continue;
+                }
+
+                $cat = get_term_by( "slug", $category->slug, "product_cat" );
 
                 if ( $cat instanceof \WP_Term )
                 {
-                    $categories[] = [ "id" => $cat->id ];
+                    $categories[] = [ "id" => $cat->term_id ];
                 }
                 else
                 {
                     $cat = wp_insert_term( $category->name, "product_cat", [ "slug" => $category->slug ] );
 
                     if ( !is_wp_error( $cat ) )
-                    {
-                        $term         = get_term( $cat[ "term_id" ], "product_cat" );
-                        $categories[] = [ "id" => $term->id ];
-                    }
+                        $categories[] = [ "id" => $cat[ "term_id" ] ];
                 }
             }
         }
