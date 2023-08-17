@@ -107,6 +107,7 @@ table.wp-list-table .column-price {
     animation: dsm-spin 1s linear infinite;
     -webkit-animation: dsm-spin 1s linear infinite;
 }
+.dsm-bg-modal-content,
 .dsm-bg-modal-load {
     top: 50%;
     left: 50%;
@@ -115,6 +116,16 @@ table.wp-list-table .column-price {
     transform: translate(-50%, -50%);
     -ms-transform: translate(-50%, -50%);
 }
+.dsm-bg-modal-content {
+    background-color: #F0F0F1 !important;
+    width: 90vw;
+    height: 80vh;
+}
+.dsm-bg-modal-content table {
+    margin: 10px;
+    width: 100%;
+}
+
 @-webkit-keyframes dsm-spin {
     0%   { -webkit-transform: rotate( 0deg   ); }
     100% { -webkit-transform: rotate( 360deg ); }
@@ -232,4 +243,30 @@ table.wp-list-table .column-s_price {
 }
 table.wp-list-table .column-woo_ds_shopkeeper_supplier {
     width: 11% !important;
+}
+
+table.wp-list-table span.wc-image {
+    display: block;
+    text-indent: -9999px;
+    position: relative;
+    height: 1em;
+    width: 1em;
+    margin: 0 auto;
+}
+table.wp-list-table span.wc-image::before {
+    font-family: Dashicons;
+    font-weight: 400;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+    text-indent: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    content: "\f128";
 }
