@@ -453,7 +453,7 @@ class DSM_Users_table extends \WP_List_Table
      */
     public function process_b_a_preview( $uid )
     {
-        $url = admin_url( "admin.php?page=woo_ds_shopkeeper&tab=suppliers&uid={$uid}" );
+        $url = admin_url( "admin.php?page=woo_ds_shopkeeper&tab=preview&uid={$uid}" );
         wp_redirect( $url );
         return;
     }
