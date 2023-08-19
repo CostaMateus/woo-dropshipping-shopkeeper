@@ -267,6 +267,7 @@ class Dropshipping_Shopkeeper
 		add_filter( "manage_users_custom_column",                           [ $this, "add_column_content_user"       ], 10, 3 );
 		add_filter( "manage_edit-product_columns",                          [ $this, "add_column_title_supplier"     ] );
 		add_filter( "manage_posts_custom_column",                           [ $this, "add_column_content_supplier"   ], 10, 3 );
+		add_filter( "http_request_args",                                    [ $this, "accept_unsafe_urls"            ], 90, 2 );
 	}
 
 	/**
@@ -279,6 +280,7 @@ class Dropshipping_Shopkeeper
 	{
 		require_once( dirname( self::FILE ) . "/includes/classes/helpers/class-woo-dsm-helper.php"        );
 
+		require_once( dirname( self::FILE ) . "/includes/classes/tables/class-woo-dsm-preview-table.php"  );
 		require_once( dirname( self::FILE ) . "/includes/classes/tables/class-woo-dsm-products-table.php" );
 		require_once( dirname( self::FILE ) . "/includes/classes/tables/class-woo-dsm-users-table.php"    );
 	}
@@ -458,9 +460,10 @@ class Dropshipping_Shopkeeper
 			[
 				"ajax_url" => admin_url( "admin-ajax.php" ),
 				"messages" => [
-					"del_users"    => __( "This action will delete the selected supplier user as well as all of its products. Click OK to confirm this action.", "woo_ds_shopkeeper" ),
-					"del_products" => __( "This action will delete all products from the selected supplier. Click OK to confirm this action.", "woo_ds_shopkeeper" ),
-					"select_users" => __( "Please select at least one supplier, for any action.", "woo_ds_shopkeeper" ),
+					"del_users"      => __( "This action will delete the selected supplier user as well as all of its products. Click OK to confirm this action.", "woo_ds_shopkeeper" ),
+					"del_products"   => __( "This action will delete all products from the selected supplier. Click OK to confirm this action.", "woo_ds_shopkeeper" ),
+					"select_users"   => __( "Please select at least one supplier, for any action.", "woo_ds_shopkeeper" ),
+					"select_preview" => __( "Please select at least one product to import.", "woo_ds_shopkeeper" ),
 				]
 			]
 		);
@@ -655,6 +658,7 @@ class Dropshipping_Shopkeeper
 		$tabs = [
 			"general"   => "General",
 			"suppliers" => "Suppliers",
+			"preview"   => "Preview",
 			"products"  => "Products",
 			"orders"    => "Orders",
 			"settings"  => "Settings",
@@ -899,5 +903,20 @@ class Dropshipping_Shopkeeper
 
 		wp_redirect( $url );
 		exit;
+	}
+
+	/**
+	 * Allow unsafe URLs
+	 *
+	 * @since 	1.0.0
+	 * @param 	array 	$args
+	 * @param 	string 	$url
+	 * @return 	array
+	 */
+	public function accept_unsafe_urls( $args, $url )
+	{
+		$args[ "reject_unsafe_urls" ] = false;
+
+		return $args;
 	}
 }
