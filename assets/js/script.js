@@ -72,51 +72,76 @@
             if ( page == 0 || page != "woo_ds_shopkeeper" ) return;
 
             const tab    = params.has( "tab"  ) ? params.get( "tab"  ) : 0;
-            if ( tab  == 0 || tab  != "suppliers"         ) return;
+            if ( tab  == 0 || tab  == "products"          ) return;
 
             e.preventDefault();
 
-            const users = $( '#dsm-users-list-table-form input[name^="users"]:checked' );
-
-            if ( a == "-1" ) return;
-
-            if ( users.length == 0 )
+            if ( $( '#dsm-users-list-table-form' ).length )
             {
-                alert( woo_dsm_params.messages.select_users );
+                const users = $( '#dsm-users-list-table-form input[name^="users"]:checked' );
+
+                if ( a == "-1" ) return;
+
+                if ( users.length == 0 )
+                {
+                    alert( woo_dsm_params.messages.select_users );
+                    return;
+                }
+
+                if ( a == "del_users" )
+                {
+                    if ( confirm( woo_dsm_params.messages.del_users ) )
+                    {
+                        $( "#dsm-modal-load" ).removeClass( "dsm-d-none" );
+                        $( "#dsm-users-list-table-form" ).submit();
+                    }
+                }
+                else if ( a == "del_products" )
+                {
+                    if ( confirm( woo_dsm_params.messages.del_products ) )
+                    {
+                        $( "#dsm-modal-load" ).removeClass( "dsm-d-none" );
+                        $( "#dsm-users-list-table-form" ).submit();
+                    }
+                }
+                else if ( a == "preview" )
+                {
+                    if ( users.length > 1 )
+                    {
+                        alert( woo_dsm_params.messages.preview_pdcts );
+                        return;
+                    }
+
+                    $( "#dsm-modal-load" ).removeClass( "dsm-d-none" );
+                    $( "#dsm-users-list-table-form" ).submit();
+                }
+                else
+                {
+                    $( "#dsm-modal-load" ).removeClass( "dsm-d-none" );
+                    $( "#dsm-users-list-table-form" ).submit();
+                }
+
                 return;
             }
 
-            if ( a == "del_users" )
+            if ( $( '#dsm-preview_products-list-table-form' ).length > 0 )
             {
-                if ( confirm( woo_dsm_params.messages.del_users ) )
+                console.log( "test" );
+
+                const preview_products = $( '#dsm-preview_products-list-table-form input[name^="products"]:checked' );
+
+                if ( a == "-1" ) return;
+
+                if ( preview_products.length == 0 )
                 {
-                    $( "#dsm-modal-load" ).removeClass( "dsm-d-none" );
-                    $( "#dsm-users-list-table-form" ).submit();
-                }
-            }
-            else if ( a == "del_products" )
-            {
-                if ( confirm( woo_dsm_params.messages.del_products ) )
-                {
-                    $( "#dsm-modal-load" ).removeClass( "dsm-d-none" );
-                    $( "#dsm-users-list-table-form" ).submit();
-                }
-            }
-            else if ( a == "preview" )
-            {
-                if ( users.length > 1 )
-                {
-                    alert( woo_dsm_params.messages.preview_pdcts );
+                    alert( woo_dsm_params.messages.select_preview );
                     return;
                 }
 
                 $( "#dsm-modal-load" ).removeClass( "dsm-d-none" );
-                $( "#dsm-users-list-table-form" ).submit();
-            }
-            else
-            {
-                $( "#dsm-modal-load" ).removeClass( "dsm-d-none" );
-                $( "#dsm-users-list-table-form" ).submit();
+                $( "#dsm-preview_products-list-table-form" ).submit();
+
+                return;
             }
         }
 
@@ -135,6 +160,8 @@
 
         function show_bulk_actions_message( val )
         {
+            let e = "";
+
             $( ".dsm-bulkactions-sync"         ).addClass( "dsm-d-none" );
             $( ".dsm-bulkactions-import"       ).addClass( "dsm-d-none" );
             $( ".dsm-bulkactions-del-products" ).addClass( "dsm-d-none" );
@@ -143,21 +170,23 @@
             switch ( val )
             {
                 case "sync":
-                    $( ".dsm-bulkactions-sync"         ).removeClass( "dsm-d-none" );
+                    e = ".dsm-bulkactions-sync";
                 break;
 
                 case "import":
-                    $( ".dsm-bulkactions-import"       ).removeClass( "dsm-d-none" );
+                    e = ".dsm-bulkactions-import";
                 break;
 
                 case "del_products":
-                    $( ".dsm-bulkactions-del-products" ).removeClass( "dsm-d-none" );
+                    e = ".dsm-bulkactions-del-products";
                 break;
 
                 case "del_users":
-                    $( ".dsm-bulkactions-del-users"    ).removeClass( "dsm-d-none" );
+                    e = ".dsm-bulkactions-del-users";
                 break;
             }
+
+            $( e ).removeClass( "dsm-d-none" );
         }
 
         // =========================================================
