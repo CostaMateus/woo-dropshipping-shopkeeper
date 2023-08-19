@@ -196,6 +196,7 @@ table.wp-list-table .column-thumbnail {
     width: 10ch;
 }
 
+.wrap-dsm .notice-cat,
 #dsm-instructions .upprice,
 #dsm-instructions .downprice,
 #dsm-instructions .evenprice,
@@ -223,6 +224,7 @@ table.wp-list-table mark.instock {
 table.wp-list-table mark.evenprice {
     color: #739BD0 !important;
 }
+.wrap-dsm .notice-cat,
 table.wp-list-table mark.onbackorder {
     color: #EAA600;
 }
