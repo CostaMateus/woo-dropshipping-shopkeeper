@@ -62,27 +62,6 @@
     text-align: center !important;
 }
 
-table.wp-list-table mark.instock,
-table.wp-list-table mark.outofstock,
-table.wp-list-table mark.onbackorder {
-    font-weight: 700;
-    background: transparent none;
-    line-height: 1;
-}
-table.wp-list-table mark.instock {
-    color: #7ad03a;
-}
-table.wp-list-table mark.outofstock {
-    color: #a44;
-}
-table.wp-list-table mark.onbackorder {
-    color: #eaa600;
-}
-table.wp-list-table .column-thumbnail,
-table.wp-list-table .column-price {
-    width: 10ch;
-}
-
 .dsm-d-none { display: none !important; }
 .dsm-modal {
     top: 0;
@@ -206,6 +185,17 @@ table.wp-list-table .column-price {
     display: none !important;
 }
 
+table.wp-list-table mark.instock,
+table.wp-list-table mark.outofstock,
+table.wp-list-table mark.onbackorder {
+    font-weight: 700;
+    background: transparent none;
+    line-height: 1;
+}
+table.wp-list-table .column-thumbnail {
+    width: 10ch;
+}
+
 #dsm-instructions .upprice,
 #dsm-instructions .downprice,
 #dsm-instructions .evenprice,
@@ -219,17 +209,22 @@ table.wp-list-table mark.evenprice {
 
 #dsm-instructions .upprice,
 table.wp-list-table .isdraft,
-table.wp-list-table mark.upprice {
+table.wp-list-table mark.upprice,
+table.wp-list-table mark.outofstock {
     color: #AA4444 !important;
 }
 #dsm-instructions .downprice,
 table.wp-list-table .ispublish,
-table.wp-list-table mark.downprice {
+table.wp-list-table mark.downprice,
+table.wp-list-table mark.instock {
     color: #7AD03A !important;
 }
 #dsm-instructions .evenprice,
 table.wp-list-table mark.evenprice {
     color: #739BD0 !important;
+}
+table.wp-list-table mark.onbackorder {
+    color: #EAA600;
 }
 
 #dsm-instructions .upprice,
@@ -237,12 +232,22 @@ table.wp-list-table mark.evenprice {
 #dsm-instructions .evenprice {
     font-size: 13px;
 }
+table.wp-list-table .column-name,
+table.wp-list-table .column-supplier,
+table.wp-list-table .column-sku {
+    width: auto !important;
+    min-width: 15ch !important;
+}
+table.wp-list-table .column-stock,
 table.wp-list-table .column-price,
-table.wp-list-table .column-s_price {
-    width: 20ch !important;
+table.wp-list-table .column-s_price,
+table.wp-list-table .column-categories,
+table.wp-list-table .column-date {
+    width: auto !important;
 }
 table.wp-list-table .column-woo_ds_shopkeeper_supplier {
-    width: 11% !important;
+    width: auto !important;
+    min-width: 15ch !important;
 }
 
 table.wp-list-table span.wc-image {
