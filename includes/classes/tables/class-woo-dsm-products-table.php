@@ -9,8 +9,6 @@
 
 namespace Dropshipping_Shopkeeper\Classes\Tables;
 
-use Dropshipping_Shopkeeper\Classes\Helpers\DSM_Helper;
-
 class DSM_Products_table extends \WP_List_Table
 {
     /**
@@ -30,7 +28,7 @@ class DSM_Products_table extends \WP_List_Table
     protected $users;
 
     /**
-     * Undocumented function
+     * Constructor
      *
      * @since   1.0.0
      * @return  void
@@ -199,6 +197,7 @@ class DSM_Products_table extends \WP_List_Table
     }
 
     /**
+     * Bulk actions options
      *
      * @since   1.0.0
      * @return  array|void
