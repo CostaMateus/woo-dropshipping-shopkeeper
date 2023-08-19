@@ -225,8 +225,9 @@ class DSM_Preview_table extends \WP_List_Table
 
         foreach ( $products as &$product )
         {
-            foreach ( $product->categories as &$category )
-                $category = DSM_Helper::find_category( $category[ "name" ], $category[ "slug" ] );
+            if ( get_option( "_dsm_categories_general", true ) )
+                foreach ( $product->categories as &$category )
+                    $category = DSM_Helper::find_category( $category[ "name" ], $category[ "slug" ] );
 
             $product = ( array ) $product;
         }
