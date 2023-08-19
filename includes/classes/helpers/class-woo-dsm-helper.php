@@ -24,22 +24,23 @@ class DSM_Helper
         $categories = [];
         $images     = [];
 
-        if ( get_option( "_dsm_categories_general", true ) )
+        if ( $preview )
         {
             foreach ( $product->categories as $category )
             {
-                if ( $preview )
-                {
-                    $categories[] = [
-                        "name" => $category->name,
-                        "slug" => $category->slug,
-                    ];
-                    continue;
-                }
-
-                $categories[] = self::find_category( $category->name, $category->slug );
+                $categories[] = [
+                    "name" => $category->name,
+                    "slug" => $category->slug,
+                ];
             }
         }
+        else
+        {
+            if ( get_option( "_dsm_categories_general", true ) )
+                foreach ( $product->categories as $category )
+                    $categories[] = self::find_category( $category->name, $category->slug );
+        }
+
 
         foreach ( $product->images as $img )
         {
