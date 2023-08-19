@@ -30,23 +30,14 @@ class DSM_Helper
             {
                 if ( $preview )
                 {
-                    $categories[] = [ "name" => $category->name ];
+                    $categories[] = [
+                        "name" => $category->name,
+                        "slug" => $category->slug,
+                    ];
                     continue;
                 }
 
-                $cat = get_term_by( "slug", $category->slug, "product_cat" );
-
-                if ( $cat instanceof \WP_Term )
-                {
-                    $categories[] = [ "id" => $cat->term_id ];
-                }
-                else
-                {
-                    $cat = wp_insert_term( $category->name, "product_cat", [ "slug" => $category->slug ] );
-
-                    if ( !is_wp_error( $cat ) )
-                        $categories[] = [ "id" => $cat[ "term_id" ] ];
-                }
+                $categories[] = self::find_category( $category->name, $category->slug );
             }
         }
 
@@ -119,6 +110,32 @@ class DSM_Helper
         ];
 
         return $data;
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param   [type] $products
+     * @return  void
+     */
+    public static function find_category( $name, $slug )
+    {
+        $result = [];
+        $cat    = get_term_by( "slug", $slug, "product_cat" );
+
+        if ( $cat instanceof \WP_Term )
+        {
+            $result = [ "id" => $cat->term_id ];
+        }
+        else
+        {
+            $cat = wp_insert_term( $name, "product_cat", [ "slug" => $slug ] );
+
+            if ( !is_wp_error( $cat ) )
+                $result = [ "id" => $cat[ "term_id" ] ];
+        }
+
+        return $result;
     }
 
     /**
