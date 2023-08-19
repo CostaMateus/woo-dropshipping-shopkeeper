@@ -48,6 +48,7 @@ class DSM_Preview_table extends \WP_List_Table
 
         $this->supplier = get_user_by( "id", $_GET[ "uid" ] );
         $this->products = $this->get_preview_products();
+        $this->products = $this->filter_products();
     }
 
     public function get_user_login()
@@ -222,7 +223,13 @@ class DSM_Preview_table extends \WP_List_Table
 
         $products = array_filter( $this->products, function( $p ) { return in_array( $p->ID, $_POST[ "products" ] ); } );
 
-        foreach ( $products as &$product ) $product = ( array ) $product;
+        foreach ( $products as &$product )
+        {
+            foreach ( $product->categories as &$category )
+                $category = DSM_Helper::find_category( $category[ "name" ], $category[ "slug" ] );
+
+            $product = ( array ) $product;
+        }
 
         $this->process_import_products( $products );
     }
@@ -466,6 +473,27 @@ class DSM_Preview_table extends \WP_List_Table
             \Dropshipping_Shopkeeper::log( $log, true );
 
             return [];
+        }
+
+        return $products;
+    }
+
+    /**
+     * Filters the products that have already been imported
+     *
+     * @since   1.0.0
+     * @return  array
+     */
+    public function filter_products()
+    {
+        $products = $this->products;
+        $prefix   = get_user_meta( $this->supplier->ID, "_dsm_sku_prefix", true );
+
+        foreach ( $products as $key => $product )
+        {
+            $product_id = wc_get_product_id_by_sku( $prefix . $product->sku );
+
+            if ( $product_id ) unset( $products[ $key ] );
         }
 
         return $products;
