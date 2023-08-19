@@ -78,6 +78,7 @@ class DSM_Helper
         }
 
         $data       = [
+            "ID"                => $product->id,
             "name"              => $product->name,
             "slug"              => $product->slug,
             "type"              => $product->type,
