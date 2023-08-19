@@ -24,6 +24,9 @@ defined( "ABSPATH" ) || exit;
 			{
 				$page   = Dropshipping_Shopkeeper::DOMAIN;
 				$active = ( $key == $tab ) ? "nav-tab-active" : "";
+
+				if ( $key == "preview" && !$active ) continue;
+
 				echo "<a href='?page={$page}&tab={$key}' class='nav-tab {$active}' >{$value}</a>";
 			}
 		?>
