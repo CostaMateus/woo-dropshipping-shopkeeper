@@ -170,6 +170,7 @@
             switch ( val )
             {
                 case "sync":
+                case "preview":
                     e = ".dsm-bulkactions-sync";
                 break;
 
