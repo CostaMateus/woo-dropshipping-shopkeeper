@@ -301,7 +301,7 @@ class DSM_Users_table extends \WP_List_Table
 
         $prefix = ( $sku && $key1 && $key2 ) ? "" : "disabled";
 
-        return sprintf( "<input type='checkbox' name='users[]' value='%s' $prefix />", $item->ID );
+        return sprintf( "<input type='checkbox' name='users[]' value='%s' %s />", $item->ID, $prefix );
     }
 
     /**
@@ -344,7 +344,7 @@ class DSM_Users_table extends \WP_List_Table
      */
     public function column_name( $item )
     {
-        return $item->user_firstname . " " . $item->user_lastname;
+        return "{$item->user_firstname} {$item->user_lastname}";
     }
 
     /**
