@@ -145,8 +145,11 @@ class Dropshipping_Shopkeeper
 
         foreach ( $orders as $order )
         {
-            $order->update_status( "shipped", "", true );
-            $order->save();
+			if ( $order->get_meta( "_dsm_supplier_status_shipped" ) && $order->get_status() == "processing" )
+			{
+				$order->update_status( "shipped", "", true );
+				$order->save();
+			}
         }
 
         self::add_role();
@@ -164,27 +167,27 @@ class Dropshipping_Shopkeeper
         if ( !current_user_can( "activate_plugins" ) ) return;
 
         $args   = [
-            "limit"  => -1,
-            "status" => [ "shipped" ],
+            "limit"        => -1,
+            "status"       => [ "shipped" ],
         ];
 
         $orders = wc_get_orders( $args );
 
         foreach ( $orders as $order )
         {
-			$order = ( is_a( $order, "WC_Order_Refund" ) ) ? wc_get_order( $order->get_parent_id() ) : $order;
-
-			if ( !$order ) continue;
-
-			$order->update_meta_data( "_dsm_supplier_status_shipped", true );
-			$order->update_status( "processing" );
-			$order->save();
+			if ( $order->get_status() == "shipped" )
+			{
+				$order->update_meta_data( "_dsm_supplier_status_shipped", true );
+				$order->update_status( "processing" );
+				$order->save();
+			}
         }
 
 		self::remove_role_from_users();
         self::remove_role();
 		self::remove_hash();
 		self::remove_users_meta();
+		self::remove_options();
     }
 
 	/**
@@ -283,6 +286,8 @@ class Dropshipping_Shopkeeper
 		require_once( dirname( self::FILE ) . "/includes/classes/tables/class-woo-dsm-preview-table.php"  );
 		require_once( dirname( self::FILE ) . "/includes/classes/tables/class-woo-dsm-products-table.php" );
 		require_once( dirname( self::FILE ) . "/includes/classes/tables/class-woo-dsm-users-table.php"    );
+
+		require_once( dirname( self::FILE ) . "/includes/classes/class-woo-dsm-orders.php" );
 	}
 
 	/**
