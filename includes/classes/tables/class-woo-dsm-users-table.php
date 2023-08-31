@@ -22,6 +22,14 @@ class DSM_Users_table extends \WP_List_Table
     protected $products;
 
     /**
+     * Orders data
+     *
+     * @since   1.0.0
+     * @var     array|stdClass
+     */
+    protected $orders;
+
+    /**
      * Users data
      *
      * @since   1.0.0
@@ -40,6 +48,7 @@ class DSM_Users_table extends \WP_List_Table
         parent::__construct();
 
         $this->load_products();
+        $this->load_orders();
 		$this->load_users();
     }
 
@@ -54,6 +63,21 @@ class DSM_Users_table extends \WP_List_Table
         $this->products = wc_get_products( [
             "limit"        => -1,
             "meta_key"     => "_dsm_supplier",
+            "meta_compare" => "EXISTS",
+        ] );
+    }
+
+    /**
+     * Load the orders data
+     *
+     * @since   1.0.0
+     * @return  void
+     */
+    private function load_orders()
+    {
+        $this->orders = wc_get_orders( [
+            "limit"        => -1,
+            "meta_key"     => "_has_dsm_order",
             "meta_compare" => "EXISTS",
         ] );
     }
@@ -80,17 +104,34 @@ class DSM_Users_table extends \WP_List_Table
 
         foreach ( $this->users as &$user )
         {
-            $count = 0;
+            $product_count = 0;
+            $order_count   = 0;
 
             foreach ( $this->products as $product )
             {
-                $id = $product->get_meta( "_dsm_supplier" );
+                $supplier_id = $product->get_meta( "_dsm_supplier" );
 
-                if ( !empty( $id ) && $id == $user->ID )
-                    $count++;
+                if ( !empty( $supplier_id ) && $supplier_id == $user->ID )
+                    $product_count++;
             }
 
-            $user->qty_products = $count;
+            foreach ( $this->orders as $order )
+            {
+                foreach ( $order->get_items() as $item )
+                {
+                    $product     = $item->get_product();
+                    $supplier_id = $product->get_meta( "_dsm_supplier", true );
+
+                    if ( !empty( $supplier_id ) && $supplier_id == $user->ID )
+                    {
+                        $order_count++;
+                        break;
+                    }
+                }
+            }
+
+            $user->qty_products = $product_count;
+            $user->qty_orders   = $order_count;
         }
     }
 
@@ -109,6 +150,7 @@ class DSM_Users_table extends \WP_List_Table
             "prefix"   => __( "SKU Prefix", "woo_ds_shopkeeper" ),
             "email"    => __( "Email",      "woo_ds_shopkeeper" ),
             "products" => __( "Products",   "woo_ds_shopkeeper" ),
+            "orders"   => __( "Orders",     "woo_ds_shopkeeper" ),
             "keys"     => __( "Keys",       "woo_ds_shopkeeper" ),
         ];
     }
@@ -122,9 +164,10 @@ class DSM_Users_table extends \WP_List_Table
     public function get_sortable_columns()
     {
         return $sortable = [
-            "username"  => [ "username", false ],
-            "email"     => [ "email",    false ],
-            "products"  => [ "products", false ],
+            "username" => [ "username", false ],
+            "email"    => [ "email",    false ],
+            "products" => [ "products", false ],
+            "orders"   => [ "orders",   false ],
         ];
     }
 
@@ -144,6 +187,7 @@ class DSM_Users_table extends \WP_List_Table
         {
             if ( $_GET[ "orderby" ] === "email"    ) $orderby = "user_email";
             if ( $_GET[ "orderby" ] === "products" ) $orderby = "qty_products";
+            if ( $_GET[ "orderby" ] === "orders"   ) $orderby = "qty_orders";
         }
 
         $order   = ( !empty( $_GET[ "order" ] ) ) ? $_GET[ "order" ] : "asc";
@@ -378,6 +422,46 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
+     * Products column
+     *
+     * @since   1.0.0
+     * @param   array|object $item
+     * @return  string
+     */
+    public function column_products( $item )
+    {
+        $link = $item->qty_products;
+
+        if ( $item->qty_products > 0 )
+        {
+            $url  = esc_url( admin_url( "admin.php?page=woo_ds_shopkeeper&tab=products&supplier={$item->ID}" ) );
+            $link = "<a href='{$url}' >{$item->qty_products}</a>";
+        }
+
+        return $link;
+    }
+
+    /**
+     * Orders column
+     *
+     * @since   1.0.0
+     * @param   array|object $item
+     * @return  string
+     */
+    public function column_orders( $item )
+    {
+        $link = $item->qty_orders;
+
+        if ( $item->qty_orders > 0 )
+        {
+            $url  = esc_url( admin_url( "admin.php?page=woo_ds_shopkeeper&tab=orders&supplier={$item->ID}" ) );
+            $link = "<a href='{$url}' >{$item->qty_orders}</a>";
+        }
+
+        return $link;
+    }
+
+    /**
      * Keys column
      *
      * @since   1.0.0
@@ -408,26 +492,6 @@ class DSM_Users_table extends \WP_List_Table
         }
 
         return "<mark class='order-status {$class}'><span>{$text}</span></mark>";
-    }
-
-    /**
-     * Products column
-     *
-     * @since   1.0.0
-     * @param   array|object $item
-     * @return  string
-     */
-    public function column_products( $item )
-    {
-        $link = $item->qty_products;
-
-        if ( $item->qty_products > 0 )
-        {
-            $url  = esc_url( admin_url( "admin.php?page=woo_ds_shopkeeper&tab=products&supplier={$item->ID}" ) );
-            $link = "<a href='{$url}' >{$item->qty_products}</a>";
-        }
-
-        return $link;
     }
 
     /**
