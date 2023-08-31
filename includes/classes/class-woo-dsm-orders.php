@@ -62,17 +62,23 @@ class DSM_Orders
 
         foreach ( $order->get_items() as $item )
         {
-            $product = $item->get_product();
-            $sup_id  = $product->get_meta( "_dsm_supplier",     true );
-            $sku     = $product->get_meta( "_dsm_supplier_sku", true );
+            $product     = $item->get_product();
+            $supplier_id = $product->get_meta( "_dsm_supplier",     true );
+            $sku         = $product->get_meta( "_dsm_supplier_sku", true );
 
-            $products[ $sup_id ][ $sku ] = [
+            if ( !$supplier_id ) continue;
+
+            $products[ $supplier_id ][ $sku ] = [
                 "quantity" => $item->get_quantity(),
                 "sale"     => $product->get_meta( "_dsm_supplier_sale_price",    true ),
                 "regular"  => $product->get_meta( "_dsm_supplier_regular_price", true ),
                 "sku"      => $product->get_sku(),
             ];
         }
+
+        if ( empty( $products ) ) return;
+
+        $order->update_meta_data( "_has_dsm_order", true );
 
         foreach ( $products as $supplier_id => $products )
         {
