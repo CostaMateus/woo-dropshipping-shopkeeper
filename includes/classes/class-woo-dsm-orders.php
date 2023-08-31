@@ -101,6 +101,7 @@ class DSM_Orders
                     "Content-Type"    => "application/json",
                 ],
                 "body"        => wp_json_encode( [
+                    "action"          => "create",
                     "order_id"        => $order_id,
                     "customer_ip"     => $customer_ip,
                     "billing"         => $billing,
@@ -123,7 +124,7 @@ class DSM_Orders
             }
 
             $status   = wp_remote_retrieve_response_code( $response );
-            $data     = json_decode( $response[ "body" ] );
+            $data     = json_decode( $response[ "body" ], true );
 
             if ( $status != 200 )
             {
@@ -134,6 +135,8 @@ class DSM_Orders
             $msg      = [
                 "Order sent successfully",
                 "Supplier: {$user->user_login} ({$supplier_id})",
+                // "Pay link: {$data[ "link" ]}",
+                "Order ID: #{$data[ "order_id" ]}",
             ];
 
             $order->add_order_note( implode( "\n", $msg ) );
