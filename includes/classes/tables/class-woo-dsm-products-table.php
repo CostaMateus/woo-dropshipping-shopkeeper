@@ -343,8 +343,8 @@ class DSM_Products_table extends \WP_List_Table
                 )
             );
 
-            $actions[ "edit" ] = "<a href='{$edit_link}' >" . __( "Edit",   "woo_ds_shopkeeper" ) . "</a>";
-            $product_name      = "<strong><a href='{$edit_link}' >{$item->get_name()}</a></strong>";
+            $actions[ "edit" ] = "<a href='{$edit_link}' target='_blank' >" . __( "Edit",   "woo_ds_shopkeeper" ) . "</a>";
+            $product_name      = "<strong><a href='{$edit_link}' target='_blank' >{$item->get_name()}</a></strong>";
             $product_name     .= " - {$status}";
         }
 
@@ -375,8 +375,8 @@ class DSM_Products_table extends \WP_List_Table
                 )
             );
 
-            $actions[ "edit" ] = "<a href='{$edit_link}'>" . __( "Edit",   "woo_ds_shopkeeper" ) . "</a>";
-            $name              = "<strong><a href='{$edit_link}'>{$item->supplier}</a></strong>";
+            $actions[ "edit" ] = "<a href='{$edit_link}' target='_blank' >" . __( "Edit",   "woo_ds_shopkeeper" ) . "</a>";
+            $name              = "<strong><a href='{$edit_link}' target='_blank' >{$item->supplier}</a></strong>";
         }
 
         return sprintf( "%1s %2s", $name, $this->row_actions( $actions ) );
