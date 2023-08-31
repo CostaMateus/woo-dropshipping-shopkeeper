@@ -9,6 +9,10 @@
 
 defined( "ABSPATH" ) || exit;
 
+$_email    = get_option( "_dsm_email_general" );
+$_category = ( !empty( get_option( "_dsm_categories_general" ) ) ) ? "checked" : "";
+$_debug    = ( !empty( get_option( "_dsm_debug"              ) ) ) ? "checked" : "";
+
 ?>
 
 <section>
@@ -30,7 +34,7 @@ defined( "ABSPATH" ) || exit;
 							</label>
 						</th>
 						<td class="forminp" >
-							<input id="dsm_email_general" class="input-text regular-input" type="email" name="dsm_email_general" value="<?php echo get_option( "_dsm_email_general", true ); ?>" >
+							<input id="dsm_email_general" class="input-text regular-input" type="email" name="dsm_email_general" value="<?php echo $_email; ?>" >
 							<p class="description" ><?php _e( "The supplier must create an account with this email. And this e-mail will be used for communication between the systems (shopkeeper/supplier). If you leave it blank, the default WP email will be used. Forward it to the supplier.", "woo_ds_shopkeeper" ); ?></p>
 							<p class="description" ><?php echo __( "Default: ", "woo_ds_shopkeeper" ) . get_bloginfo( "admin_email" ); ?></p>
 						</td>
@@ -42,7 +46,7 @@ defined( "ABSPATH" ) || exit;
 							</label>
 						</th>
 						<td class="forminp" >
-							<input id="dsm_categories_general" class="input-text regular-input" type="checkbox" name="dsm_categories_general" <?php echo ( !empty( get_option( "_dsm_categories_general", true ) ) ) ? "checked" : ""; ?> >
+							<input id="dsm_categories_general" class="input-text regular-input" type="checkbox" name="dsm_categories_general" <?php echo $_category;?> >
 							<?php _e( "Enable / Disable", "woo_ds_shopkeeper" ); ?>
 							<p class="description" ><?php _e( "If enabled, it imports products from each supplier with their respective categories. If a category does not exist, it will be created at import time.", "woo_ds_shopkeeper" ); ?></p>
 							<p class="description" ><?php _e( "If not, all products will be imported without categories.", "woo_ds_shopkeeper" ); ?></p>
@@ -55,7 +59,7 @@ defined( "ABSPATH" ) || exit;
 							</label>
 						</th>
 						<td class="forminp" >
-							<input id="dsm_debug_general" class="input-text regular-input" type="checkbox" name="dsm_debug_general" <?php echo ( !empty( get_option( "_dsm_debug", true ) ) ) ? "checked" : ""; ?> >
+							<input id="dsm_debug_general" class="input-text regular-input" type="checkbox" name="dsm_debug_general" <?php echo $_debug; ?> >
 							<?php _e( "Enable / Disable", "woo_ds_shopkeeper" ); ?>
 							<p class="description" ><?php _e( "If enabled, will generate detailed log. If not, it will only generate a crash log.", "woo_ds_shopkeeper" ); ?></p>
 							<p class="description" ><?php echo $debug; ?></p>
