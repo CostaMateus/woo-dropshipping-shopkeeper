@@ -678,13 +678,14 @@ class DSM_Users_table extends \WP_List_Table
                             /**
                              * Process regular price
                              */
-
-                            $change     = DSM_Helper::process_regular_price( $regular, $newRegular, $sttRegular, $product );
+                            $change_r   = DSM_Helper::process_regular_price( $regular, $newRegular, $sttRegular, $product );
 
                             /**
                              * Process sale price
                              */
-                            $change     = DSM_Helper::process_sale_price( $regular, $sale, $newSale, $sttSale, $product );
+                            $change_s   = DSM_Helper::process_sale_price( $regular, $sale, $newSale, $sttSale, $product );
+
+                            $change     = ( $change_r || $change_s ) ? true : false;
 
                             /**
                              * Check if stock status has changed
