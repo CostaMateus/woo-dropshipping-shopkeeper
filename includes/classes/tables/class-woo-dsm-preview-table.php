@@ -650,7 +650,9 @@ class DSM_Preview_table extends \WP_List_Table
     {
         $url            = "{$this->_url}/wp-json/dsm/v1/products/imported";
         $args           = $this->_args;
-        $args[ "body" ] = [ "skus" => $skus ];
+
+        $args[ "body"    ]                   = wp_json_encode( [ "skus" => $skus ] );
+        $args[ "headers" ][ "Content-Type" ] = "application/json";
 
         $response       = wp_remote_post( $url, $args );
 
