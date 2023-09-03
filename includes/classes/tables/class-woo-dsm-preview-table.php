@@ -30,6 +30,46 @@ class DSM_Preview_table extends \WP_List_Table
     protected $supplier;
 
     /**
+     * Supplier url
+     *
+     * @since   1.0.0
+     * @var     strings
+     */
+    protected $_url;
+
+    /**
+     * Supplier secret
+     *
+     * @since   1.0.0
+     * @var     string
+     */
+    protected $_secret_s;
+
+    /**
+     * Supplier prefix
+     *
+     * @since   1.0.0
+     * @var     string
+     */
+    protected $_prefix;
+
+    /**
+     * Shopkeepers secret
+     *
+     * @since   1.0.0
+     * @var     string
+     */
+    protected $_secret;
+
+    /**
+     * Shopkeeper email
+     *
+     * @since   1.0.0
+     * @var     string
+     */
+    protected $_email;
+
+    /**
      * Constructor
      *
      * @since   1.0.0
@@ -47,8 +87,39 @@ class DSM_Preview_table extends \WP_List_Table
         }
 
         $this->supplier = get_user_by( "id", $_GET[ "uid" ] );
+
+        $this->set_props();
+
         $this->products = $this->get_preview_products();
-        $this->products = $this->filter_products();
+    }
+
+    /**
+     * Set global props
+     *
+     * @since   1.0.0
+     * @return  void
+     */
+    private function set_props()
+    {
+        $this->_url      = get_user_meta( $this->supplier->ID, "_dsm_url",        true );
+        $this->_secret   = get_user_meta( $this->supplier->ID, "_dsm_secret",     true );
+        $this->_secret_s = get_user_meta( $this->supplier->ID, "_dsm_secret_s",   true );
+        $this->_prefix   = get_user_meta( $this->supplier->ID, "_dsm_sku_prefix", true );
+
+        $this->_email    = get_option( "_dsm_email_general", true );
+
+        if ( empty( $this->_email ) || !is_email( $this->_email ) )
+            $this->_email = get_bloginfo( "admin_email" );
+
+        $this->_args     = [
+            "timeout"   => 60,
+            "sslverify" => false,
+            "headers"   => [
+                "_dsm_email"      => $this->_email,
+                "_dsm_supplier"   => $this->_secret_s,
+                "_dsm_shopkeeper" => $this->_secret,
+            ]
+        ];
     }
 
     public function get_user_login()
@@ -64,7 +135,7 @@ class DSM_Preview_table extends \WP_List_Table
      */
     public function get_columns()
     {
-        $columns = [
+        return $columns = [
             "cb"         => "<input type='checkbox' />",
             "thumbnail"  => "<span class='wc-image'></span>",
             "name"       => __( "Name",              "woo_ds_shopkeeper" ),
@@ -73,8 +144,6 @@ class DSM_Preview_table extends \WP_List_Table
             "price"      => __( "Price",             "woo_ds_shopkeeper" ),
             "categories" => __( "Categories",        "woo_ds_shopkeeper" ),
         ];
-
-        return $columns;
     }
 
     /**
@@ -85,13 +154,11 @@ class DSM_Preview_table extends \WP_List_Table
      */
     public function get_sortable_columns()
     {
-        $sortable = [
+        return $sortable = [
             "name"     => [ "name",     false ],
             "sku"      => [ "sku",      false ],
             "price"    => [ "price",    false ],
         ];
-
-        return $sortable;
     }
 
     /**
@@ -146,11 +213,7 @@ class DSM_Preview_table extends \WP_List_Table
      */
     public function get_bulk_actions()
     {
-        $actions = [
-            "import" => __( "Import products",  "woo_ds_shopkeeper" ),
-        ];
-
-        return $actions;
+        return $actions = [ "import" => __( "Import products", "woo_ds_shopkeeper" ) ];
     }
 
     /**
@@ -399,35 +462,18 @@ class DSM_Preview_table extends \WP_List_Table
      */
     public function get_preview_products()
     {
-        $url      = get_user_meta( $this->supplier->ID, "_dsm_url"     , true );
-        $secret   = get_user_meta( $this->supplier->ID, "_dsm_secret"  , true );
-        $secret_s = get_user_meta( $this->supplier->ID, "_dsm_secret_s", true );
+        if ( !$this->_url || !$this->_secret || !$this->_secret_s ) return [];
 
-        if ( !$url || !$secret || !$secret_s ) return [];
-
-        $email    = get_option( "_dsm_email_general", true );
-        $email    = ( !empty( $email ) && is_email( $email ) ) ? $email : get_bloginfo( "admin_email" );
-
-        $args     = [
-            "timeout"   => 60,
-            "sslverify" => false,
-            "headers"   => [
-                "_dsm_email"      => $email,
-                "_dsm_supplier"   => $secret_s,
-                "_dsm_shopkeeper" => $secret,
-            ]
-        ];
-
-        $url      = "{$url}/wp-json/dsm/v1/products";
+        $url      = "{$this->_url}/wp-json/dsm/v1/products";
 
         /**
          * Get supplier products
          */
-        $response = wp_remote_get( $url, $args );
+        $response = wp_remote_get( $url, $this->_args );
 
         if ( is_wp_error( $response ) )
         {
-            $log  = "ERROR - Supplier ID {$this->supplier->ID} - api_query_error - " . $response->get_error_message();
+            $log  = "ERROR - Supplier ID {$this->supplier->ID} - api_query_error GET - " . $response->get_error_message();
             $log .= " - " . json_encode( [ "url" => $url ] );
             \Dropshipping_Shopkeeper::log( $log, true );
 
@@ -476,7 +522,7 @@ class DSM_Preview_table extends \WP_List_Table
             return [];
         }
 
-        return $products;
+        return $this->filter_products( $products );
     }
 
     /**
@@ -485,14 +531,11 @@ class DSM_Preview_table extends \WP_List_Table
      * @since   1.0.0
      * @return  array
      */
-    public function filter_products()
+    public function filter_products( $products )
     {
-        $products = $this->products;
-        $prefix   = get_user_meta( $this->supplier->ID, "_dsm_sku_prefix", true );
-
         foreach ( $products as $key => $product )
         {
-            $product_id = wc_get_product_id_by_sku( $prefix . $product->sku );
+            $product_id = wc_get_product_id_by_sku( $this->_prefix . $product->sku );
 
             if ( $product_id ) unset( $products[ $key ] );
         }
@@ -507,7 +550,7 @@ class DSM_Preview_table extends \WP_List_Table
      * @param   array   $products
      * @return  void
      */
-    public function process_import_products( $products )
+    private function process_import_products( $products )
     {
         $errors[ $this->supplier->ID ] = [
             "errors"   => 0,
@@ -524,12 +567,11 @@ class DSM_Preview_table extends \WP_List_Table
 
         $request    = new \WP_REST_Request( "POST", "/wc/v3/products" );
         $controller = new \WC_REST_Products_Controller;
-
-        $prefix     = get_user_meta( $this->supplier->ID, "_dsm_sku_prefix" , true );
+        $imported   = [];
 
         foreach ( $products as $aux_product )
         {
-            $prd_id   = wc_get_product_id_by_sku( $prefix . $aux_product[ "sku" ] );
+            $prd_id   = wc_get_product_id_by_sku( $this->_prefix . $aux_product[ "sku" ] );
 
             if ( $prd_id ) continue;
 
@@ -557,7 +599,7 @@ class DSM_Preview_table extends \WP_List_Table
 
             try
             {
-                $product->set_sku( $prefix . $product->sku );
+                $product->set_sku( $this->_prefix . $product->sku );
             }
             catch ( \Exception $e )
             {
@@ -570,7 +612,14 @@ class DSM_Preview_table extends \WP_List_Table
             }
 
             $product->save();
+
+            $imported[] = $aux_product[ "sku" ];
         }
+
+        /**
+         * Inform supplier about imported products
+         */
+        if ( !empty( $imported ) ) $this->send_imported_products( $imported );
 
         $count      = count( $products ) - $errors[ $this->supplier->ID ][ "warnings" ];
         $log        = "INFO - Supplier ID {$this->supplier->ID} - imported {$count} products";
@@ -588,6 +637,53 @@ class DSM_Preview_table extends \WP_List_Table
             return $this->redirect( "warning", $errors );
 
         return $this->redirect( "error", $errors );
+    }
+
+    /**
+     * Inform supplier about imported products
+     *
+     * @since   1.0.0
+     * @param   array   $skus
+     * @return  void
+     */
+    private function send_imported_products( $skus )
+    {
+        $url            = "{$this->_url}/wp-json/dsm/v1/products/imported";
+        $args           = $this->_args;
+        $args[ "body" ] = [ "skus" => $skus ];
+
+        $response       = wp_remote_post( $url, $args );
+
+        if ( is_wp_error( $response ) )
+        {
+            \Dropshipping_Shopkeeper::log( json_encode( [
+                "ERROR",
+                "Supplier ID {$this->supplier->ID}",
+                "api_query_error POST",
+                json_encode( [ "url" => $url ] ),
+                $response->get_error_message(),
+            ] ), true );
+
+            return;
+        }
+
+        $status         = wp_remote_retrieve_response_code( $response );
+        $data           = json_decode( $response[ "body" ], true );
+
+        if ( $status != 200 )
+        {
+            \Dropshipping_Shopkeeper::log( json_encode( [
+                "ERROR",
+                "Supplier ID {$this->supplier->ID}",
+                "api_query_error POST",
+                json_encode( [ "url" => $url ] ),
+                json_encode( $data ),
+            ] ), true );
+
+            return;
+        }
+
+        \Dropshipping_Shopkeeper::log( json_encode( $data ) );
     }
 
     /**
