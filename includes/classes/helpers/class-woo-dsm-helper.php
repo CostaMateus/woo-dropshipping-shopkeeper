@@ -192,8 +192,6 @@ class DSM_Helper
 
         if ( $change )
         {
-            $log[ "incoming_data" ][ "status_r" ] = $newStatus;
-
             $product->update_meta_data( "_dsm_supplier_status_regular", $newStatus            );
             $product->update_meta_data( "_dsm_supplier_price_upd",      date( "Y-m-d H:i:s" ) );
         }
@@ -249,8 +247,6 @@ class DSM_Helper
 
         if ( $change )
         {
-            $log[ "incoming_data" ][ "status_s" ] = $newStatus;
-
             $product->update_meta_data( "_dsm_supplier_status_sale", $newStatus            );
             $product->update_meta_data( "_dsm_supplier_price_upd",   date( "Y-m-d H:i:s" ) );
         }
