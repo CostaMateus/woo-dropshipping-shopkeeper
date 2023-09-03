@@ -9,87 +9,296 @@
  * @version 	1.0.0
  */
 
+use Dropshipping_Shopkeeper\Classes\Helpers\DSM_Helper;
+
 class DSM_REST_Products_V1_Controller extends \WP_REST_Controller
 {
 	/**
 	 * Endpoint namespace.
 	 *
-	 * @var string
+	 * @since   1.0.0
+	 * @var 	string
 	 */
 	protected $namespace = "dsm/v1";
 
 	/**
 	 * Route base.
 	 *
-	 * @var string
+	 * @since   1.0.0
+	 * @var 	string
 	 */
 	protected $rest_base = "products";
 
 	/**
-	 * Register the routes for orders.
+	 * Register the routes for products.
+	 *
+	 * @since   1.0.0
+	 * @return  void
 	 */
-	public function register_routes() {
-		register_rest_route( $this->namespace, "/" . $this->rest_base, array(
-			array(
-				"methods"             => WP_REST_Server::READABLE,
-				"callback"            => array( $this, "get_items" ),
-				"permission_callback" => array( $this, "get_items_permissions_check" ),
-				"args"                => $this->get_collection_params(),
-			),
-			array(
-				"methods"             => WP_REST_Server::CREATABLE,
-				"callback"            => array( $this, "create_item" ),
-				"permission_callback" => array( $this, "create_item_permissions_check" ),
-				"args"                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
-			),
-			"schema" => array( $this, "get_public_item_schema" ),
-		) );
+	public function register_routes()
+	{
+		// register_rest_route( $this->namespace, "/" . $this->rest_base, array(
+		// 	array(
+		// 		"methods"             => WP_REST_Server::READABLE,
+		// 		"callback"            => array( $this, "get_items" ),
+		// 		"permission_callback" => array( $this, "get_items_permissions_check" ),
+		// 		"args"                => $this->get_collection_params(),
+		// 	),
+		// 	array(
+		// 		"methods"             => WP_REST_Server::CREATABLE,
+		// 		"callback"            => array( $this, "create_item" ),
+		// 		"permission_callback" => array( $this, "create_item_permissions_check" ),
+		// 		"args"                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
+		// 	),
+		// 	"schema" => array( $this, "get_public_item_schema" ),
+		// ) );
 
-		register_rest_route( $this->namespace, "/" . $this->rest_base . "/(?P<id>[\d]+)", array(
-			"args" => array(
-				"id" => array(
-					"description" => __( "Unique identifier for the resource.", "woocommerce" ),
-					"type"        => "integer",
-				),
-			),
-			array(
-				"methods"             => WP_REST_Server::READABLE,
-				"callback"            => array( $this, "get_item" ),
-				"permission_callback" => array( $this, "get_item_permissions_check" ),
-				"args"                => array(
-					"context" => $this->get_context_param( array( "default" => "view" ) ),
-				),
-			),
-			array(
-				"methods"             => WP_REST_Server::EDITABLE,
-				"callback"            => array( $this, "update_item" ),
-				"permission_callback" => array( $this, "update_item_permissions_check" ),
-				"args"                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
-			),
-			array(
-				"methods"             => WP_REST_Server::DELETABLE,
-				"callback"            => array( $this, "delete_item" ),
-				"permission_callback" => array( $this, "delete_item_permissions_check" ),
-				"args"                => array(
-					"force" => array(
-						"default"     => false,
-						"type"        => "boolean",
-						"description" => __( "Whether to bypass trash and force deletion.", "woocommerce" ),
-					),
-				),
-			),
-			"schema" => array( $this, "get_public_item_schema" ),
-		) );
+		// register_rest_route( $this->namespace, "/" . $this->rest_base . "/(?P<id>[\d]+)", array(
+		// 	"args" => array(
+		// 		"id" => array(
+		// 			"description" => __( "Unique identifier for the resource.", "woocommerce" ),
+		// 			"type"        => "integer",
+		// 		),
+		// 	),
+		// 	array(
+		// 		"methods"             => WP_REST_Server::READABLE,
+		// 		"callback"            => array( $this, "get_item" ),
+		// 		"permission_callback" => array( $this, "get_item_permissions_check" ),
+		// 		"args"                => array(
+		// 			"context" => $this->get_context_param( array( "default" => "view" ) ),
+		// 		),
+		// 	),
+		// 	array(
+		// 		"methods"             => WP_REST_Server::EDITABLE,
+		// 		"callback"            => array( $this, "update_item" ),
+		// 		"permission_callback" => array( $this, "update_item_permissions_check" ),
+		// 		"args"                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
+		// 	),
+		// 	array(
+		// 		"methods"             => WP_REST_Server::DELETABLE,
+		// 		"callback"            => array( $this, "delete_item" ),
+		// 		"permission_callback" => array( $this, "delete_item_permissions_check" ),
+		// 		"args"                => array(
+		// 			"force" => array(
+		// 				"default"     => false,
+		// 				"type"        => "boolean",
+		// 				"description" => __( "Whether to bypass trash and force deletion.", "woocommerce" ),
+		// 			),
+		// 		),
+		// 	),
+		// 	"schema" => array( $this, "get_public_item_schema" ),
+		// ) );
 
-		register_rest_route( $this->namespace, "/" . $this->rest_base . "/batch", array(
-			array(
-				"methods"             => WP_REST_Server::EDITABLE,
-				"callback"            => array( $this, "batch_items" ),
-				"permission_callback" => array( $this, "batch_items_permissions_check" ),
-				"args"                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
-			),
-			"schema" => array( $this, "get_public_batch_schema" ),
-		) );
+		// register_rest_route( $this->namespace, "/" . $this->rest_base . "/batch", array(
+		// 	array(
+		// 		"methods"             => WP_REST_Server::EDITABLE,
+		// 		"callback"            => array( $this, "batch_items" ),
+		// 		"permission_callback" => array( $this, "batch_items_permissions_check" ),
+		// 		"args"                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
+		// 	),
+		// 	"schema" => array( $this, "get_public_batch_schema" ),
+		// ) );
+
+		register_rest_route(
+			$this->namespace,
+			"/{$this->rest_base}/update",
+			[
+				[
+					"methods"             => WP_REST_Server::CREATABLE,
+					"callback"            => [ $this, "update_item"       ],
+					"permission_callback" => [ $this, "permissions_check" ],
+				],
+			]
+		);
+	}
+
+	/**
+	 * Saves in the product which shopkeeper imported it
+	 *
+	 * @since   1.0.0
+	 * @param  	WP_REST_Request 	$request Full details about the request.
+	 * @return 	WP_Error|WP_REST_Response
+	 */
+	public function update_item( $request )
+	{
+		$checkAuth  = $this->checkAuth( $request );
+
+		if ( !$checkAuth[ "success" ] )
+		{
+			$error = $checkAuth[ "error" ];
+			return new WP_Error( $error[ "code" ], $error[ "message" ], $error[ "status" ] );
+		}
+
+		$user       = $checkAuth[ "user" ];
+		$data       = json_decode( $request->get_body(), true );
+
+		$checkData  = [
+			"stock_quantity",
+			"stock_status",
+			"sku",
+			"managed",
+			"regular_price",
+			"sale_price"
+		];
+
+		foreach ( $checkData as $check )
+			if ( !isset( $data[ $check ] ) )
+				return new WP_Error( "dsm_rest_products_v1_missing_data", __( "Missing data body.", "woo_ds_shopkeeper" ), 400 );
+
+		$prefix     = $user->data->usermeta[ "_dsm_sku_prefix" ];
+		$product_id = wc_get_product_id_by_sku( $prefix . $data[ "sku" ] );
+
+		if ( !$product_id )
+			return new WP_Error( "dsm_rest_products_v1_not_found", __( "Product not found.", "woo_ds_shopkeeper" ), 404 );
+
+		$product    = wc_get_product( $product_id );
+
+		/**
+		 * Check if stock quantity has changed
+		 */
+		if ( $data[ "stock_quantity" ] != $product->get_stock_quantity() )
+			$product->set_stock_quantity( $data[ "stock_quantity" ] );
+
+		/**
+		 * Check if stock status has changed
+		 */
+		if ( $data[ "stock_status" ] != $product->get_stock_status() )
+		{
+			$product->set_stock_status( $data[ "stock_status" ] );
+
+			if ( $data[ "stock_status" ] == "outofstock" )
+				$product->set_status( "draft" );
+		}
+
+		/**
+		 * Check if stock is manageable
+		 */
+		if ( $data[ "managed" ] != $product->get_manage_stock() )
+			$product->set_manage_stock( $data[ "managed" ] );
+
+		$sttRegular = $product->get_meta( "_dsm_supplier_status_regular" );
+		$regular    = $product->get_meta( "_dsm_supplier_regular_price"  );
+		$newRegular = $data[ "regular_price" ];
+
+		$sttSale    = $product->get_meta( "_dsm_supplier_status_sale"    );
+		$sale       = $product->get_meta( "_dsm_supplier_sale_price"     );
+		$newSale    = $data[ "sale_price"    ];
+
+		/**
+		 * Process regular and sale price
+		 */
+		DSM_Helper::process_regular_price( $regular, $newRegular, $sttRegular, $product );
+		DSM_Helper::process_sale_price( $regular, $sale, $newSale, $sttSale, $product );
+
+		$product->save();
+
+		return new WP_REST_Response( [
+			"code" => "dsm_rest_products_v1_success",
+		], 200 );
+	}
+
+	/**
+	 * Check if a given request has access to read items.
+	 *
+	 * @since 	1.0.0
+	 * @param  	WP_REST_Request 	$request Full details about the request.
+	 * @return 	WP_Error|boolean
+	 */
+	public function permissions_check( $request )
+	{
+		$checkAuth = $this->checkAuth( $request );
+
+		if ( !$checkAuth[ "success" ] )
+		{
+			$error = $checkAuth[ "error" ];
+			return new WP_Error( $error[ "code" ], $error[ "message" ], $error[ "status" ] );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Validate the request.
+	 *
+	 * @since   1.0.0
+	 * @param  	WP_REST_Request 	$request Full details about the request.
+	 * @return 	array
+	 */
+	private function checkAuth( $request )
+	{
+		$email     = $request->get_header( "_dsm_email"      );
+		$supp      = $request->get_header( "_dsm_supplier"   );
+		$shop      = $request->get_header( "_dsm_shopkeeper" );
+
+		if ( is_null( $email ) || is_null( $supp ) || is_null( $shop ) )
+		{
+			$code    = "dsm_rest_cannot_view";
+			$message = __( "Sorry, you cannot list resources.", "woo_ds_supplier" );
+			$status  = [ "status" => rest_authorization_required_code() ];
+
+			return [
+				"success" => false,
+				"error"   => [
+					"code"    => $code,
+					"message" => $message,
+					"status"  => $status
+				]
+			];
+		}
+
+		$user      = get_user_by( "email", $email );
+
+		if ( !$user )
+		{
+			$code    = "dsm_rest_products_v1_invalid_email";
+			$message = __( "Invalid email", "woo_ds_supplier" );
+			$status  = [ "status" => 401 ];
+
+			return [
+				"success" => false,
+				"error"   => [
+					"code"    => $code,
+					"message" => $message,
+					"status"  => $status
+				]
+			];
+		}
+
+		$user->usermeta = array_map( function ( $data ) {
+			return reset( $data );
+		}, get_user_meta( $user->ID ) );
+
+		$_url      = $user->data->usermeta[ "_dsm_url"      ];
+		$_secret   = $user->data->usermeta[ "_dsm_secret"   ];
+		$_secret_s = $user->data->usermeta[ "_dsm_secret_s" ];
+
+		$secret    = "{$user->ID}|{$user->user_email}|{$_url}|" . get_home_url();
+
+		$s1        = $_secret   == $supp;
+		$s2        = $_secret_s == $shop;
+
+		$verify    = password_verify( $secret, $_secret );
+
+		if ( !$s1 || !$s2 || !$verify )
+		{
+			$code    = "dsm_rest_products_v1_invalid_secret";
+			$message = __( "Invalid secret", "woo_ds_supplier" );
+			$status  = [ "status" => 401 ];
+
+			return [
+				"success" => false,
+				"error"   => [
+					"code"    => $code,
+					"message" => $message,
+					"status"  => $status
+				]
+			];
+		}
+
+		return [
+			"success" => true,
+			"user"    => $user,
+		];
 	}
 
 }
