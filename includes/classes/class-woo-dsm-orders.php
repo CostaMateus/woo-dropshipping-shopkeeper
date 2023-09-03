@@ -178,7 +178,6 @@ class DSM_Orders
 
         $msg  = [
             "ORDER NOT SENT",
-            "Order: #{$order->get_id()}",
             "Supplier: {$user->user_login} ({$user->ID})",
             "SKUs: {$skus}"
         ];
