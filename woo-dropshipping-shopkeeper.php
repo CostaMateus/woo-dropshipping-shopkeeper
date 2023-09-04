@@ -264,11 +264,6 @@ class Dropshipping_Shopkeeper
     {
         add_filter( "wc_order_statuses",                                    [ $this, "add_shipped_to_order_statuses" ] );
 		add_filter( "plugin_action_links_" . plugin_basename( self::FILE ), [ $this, "plugin_action_links"           ] );
-		add_filter( "manage_users_columns",                                 [ $this, "add_column_title_user"         ] );
-		add_filter( "manage_users_custom_column",                           [ $this, "add_column_content_user"       ], 10, 3 );
-		add_filter( "bulk_actions-edit-shop_order",                         [ $this, "add_bulk_actions_shop_order"   ], 20, 1 );
-		add_filter( "manage_edit-product_columns",                          [ $this, "add_column_title_supplier"     ] );
-		add_filter( "manage_posts_custom_column",                           [ $this, "add_column_content_supplier"   ], 10, 3 );
 		add_filter( "http_request_args",                                    [ $this, "accept_unsafe_urls"            ], 90, 2 );
 	}
 
@@ -286,7 +281,9 @@ class Dropshipping_Shopkeeper
 		require_once( dirname( self::FILE ) . "/includes/classes/tables/class-woo-dsm-products-table.php" );
 		require_once( dirname( self::FILE ) . "/includes/classes/tables/class-woo-dsm-users-table.php"    );
 
-		require_once( dirname( self::FILE ) . "/includes/classes/class-woo-dsm-orders.php" );
+		require_once( dirname( self::FILE ) . "/includes/classes/class-woo-dsm-orders.php"                );
+		require_once( dirname( self::FILE ) . "/includes/classes/class-woo-dsm-products.php"              );
+		require_once( dirname( self::FILE ) . "/includes/classes/class-woo-dsm-users.php"                 );
 	}
 
 	/**
@@ -495,146 +492,6 @@ class Dropshipping_Shopkeeper
 		$plugin_links[] = "<a href='{$url}' >{$text}</a>";
 
 		return array_merge( $plugin_links, $links );
-	}
-
-	/**
-	 * Adds 'DSM Keys' column header to 'Users' page immediately after 'Role' column.
-	 *
-	 * @since 	1.0.0
-	 * @param 	array 	$columns
-	 * @return 	array 	$new_columns
-	 */
-	public function add_column_title_user( $columns )
-	{
-		if ( isset( $_GET[ "role" ] ) && $_GET[ "role" ] === "supplier" )
-		{
-			$new_columns = [];
-
-			foreach ( $columns as $column_name => $column_info )
-			{
-				$new_columns[ $column_name ] = $column_info;
-				$name                        = self::DOMAIN . "_user_keys";
-
-				if ( "role" === $column_name )
-					$new_columns[ $name ] = "DSM Keys";
-			}
-
-			return $new_columns;
-		}
-
-		return $columns;
-	}
-
-	/**
-	 * Adds 'DSM Keys' column content to 'Users' page immediately after 'Role' column.
-	 *
-	 * @since 	1.0.0
-	 * @param 	mixed 	$val
-	 * @param 	string 	$column
-	 * @param 	string 	$user_id
-	 * @return 	mixed 	$val
-	 */
-	public function add_column_content_user( $val, $column, $user_id )
-	{
-		if ( isset( $_GET[ "role" ] ) && $_GET[ "role" ] === "supplier" )
-		{
-			$name = self::DOMAIN . "_user_keys";
-
-			if ( $name === $column )
-			{
-				$k1 = get_user_meta( $user_id, "_dsm_secret",   true );
-				$k2 = get_user_meta( $user_id, "_dsm_secret_s", true );
-
-				if ( $k1 && $k2 )
-				{
-					$text  = translate( "Keys setted", "woo_ds_shopkeeper" );
-					$class = "status-processing";
-				}
-				elseif ( ( $k1 && !$k2 ) || ( !$k1 && $k2 ) )
-				{
-					$text  = translate( "Missing one key", "woo_ds_shopkeeper" );
-					$class = "status-on-hold";
-				}
-				else
-				{
-					$text  = translate( "Both keys missing", "woo_ds_shopkeeper" );
-					$class = "status-failed";
-				}
-
-				return "<mark class='order-status {$class}'><span>{$text}</span></mark>";
-			}
-		}
-
-		return $val;
-	}
-
-	/**
-	 * Add option to bulk actions on shop order page, to change status to 'shipped'
-	 *
-	 * @since 	1.0.0
-	 * @param 	array 	$actions
-	 * @return 	array
-	 */
-	public function add_bulk_actions_shop_order( $actions )
-	{
-		$new_actions = [];
-
-		foreach ( $actions as $key => $action )
-		{
-			$new_actions[ $key ] = $action;
-
-			if ( "mark_on-hold" === $key )
-				$new_actions[ "mark_shipped" ] = __( "Change status to shipped", "woo_dsm_supplier" );
-		}
-
-		return $new_actions;
-	}
-
-	/**
-	 * Adds 'Suppler' column header to 'All Products' page immediately after 'Categories' column.
-	 *
-	 * @since 	1.0.0
-	 * @param 	array 	$columns
-	 * @return 	array	$new_columns
-	 */
-	public function add_column_title_supplier( $columns )
-	{
-		$new_columns = [];
-
-		foreach ( $columns as $column_name => $column_info )
-		{
-			$new_columns[ $column_name ] = $column_info;
-
-			if ( "product_cat" === $column_name )
-				$new_columns[ self::DOMAIN . "_supplier" ] = __( "Supplier", "woo_ds_shopkeeper" );
-		}
-
-		return $new_columns;
-	}
-
-	/**
-	 * Adds 'Supplier' column content to 'All Products' page immediately after 'Categories' column.
-	 *
-	 * @since 	1.0.0
-	 * @param 	mixed 	$val
-	 * @param 	string 	$column
-	 * @param 	string 	$product_id
-	 * @return 	mixed 	$val
-	 */
-	public function add_column_content_supplier( $column, $product_id )
-	{
-		if ( $column === self::DOMAIN . "_supplier" )
-		{
-			$product     = wc_get_product( $product_id );
-			$supplier_id = $product->get_meta( "_dsm_supplier" );
-
-			if ( $supplier_id )
-			{
-				$supplier = get_user_by( "id", $supplier_id );
-
-				echo $supplier->user_login;
-			}
-		}
 	}
 
 	/**

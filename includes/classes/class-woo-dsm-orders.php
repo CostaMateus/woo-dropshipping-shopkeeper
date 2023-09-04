@@ -11,7 +11,6 @@ namespace Dropshipping_Shopkeeper\Classes;
 
 class DSM_Orders
 {
-
     /**
      * Constructor
      *
@@ -21,6 +20,8 @@ class DSM_Orders
     public function __construct()
     {
         add_action( "woocommerce_thankyou", [ $this, "send_order_to_suppliers" ], 1 );
+		add_filter( "bulk_actions-edit-shop_order",                         [ $this, "add_bulk_actions_shop_order"   ], 20, 1 );
+
     }
 
     /**
@@ -189,6 +190,27 @@ class DSM_Orders
         if ( $error ) \Dropshipping_Shopkeeper::log( "ERROR - {$error}", true );
     }
 
+	/**
+	 * Add option to bulk actions on shop order page, to change status to 'shipped'
+	 *
+	 * @since 	1.0.0
+	 * @param 	array 	$actions
+	 * @return 	array
+	 */
+	public function add_bulk_actions_shop_order( $actions )
+	{
+		$new_actions = [];
+
+		foreach ( $actions as $key => $action )
+		{
+			$new_actions[ $key ] = $action;
+
+			if ( "mark_on-hold" === $key )
+				$new_actions[ "mark_shipped" ] = __( "Change status to shipped", "woo_dsm_supplier" );
+		}
+
+		return $new_actions;
+	}
 }
 
 new DSM_Orders();
