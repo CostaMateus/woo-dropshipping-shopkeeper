@@ -297,7 +297,7 @@ class Dropshipping_Shopkeeper
     public static function add_custom_order_status()
     {
 		register_post_status( "wc-shipped", [
-			"label"                     => _x( "Shipped", "Order status", "woo_ds_supplier" ),
+			"label"                     => _x( "Shipped", "Order status", "woo_ds_shopkeeper" ),
 			"public"                    => true,
 			"exclude_from_search"       => false,
 			"show_in_admin_all_list"    => true,

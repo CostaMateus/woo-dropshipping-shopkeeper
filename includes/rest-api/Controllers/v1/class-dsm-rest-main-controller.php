@@ -55,7 +55,7 @@ class DSM_REST_Main_Controller extends \WP_REST_Controller
 		if ( is_null( $email ) || is_null( $supp ) || is_null( $shop ) )
 		{
 			$code    = "dsm_rest_cannot_view";
-			$message = __( "Sorry, you cannot list resources.", "woo_ds_supplier" );
+			$message = __( "Sorry, you cannot list resources.", "woo_ds_shopkeeper" );
 			$status  = [ "status" => rest_authorization_required_code() ];
 
 			return [
@@ -73,7 +73,7 @@ class DSM_REST_Main_Controller extends \WP_REST_Controller
 		if ( !$user )
 		{
 			$code    = "dsm_rest_main_v1_invalid_email";
-			$message = __( "Invalid email", "woo_ds_supplier" );
+			$message = __( "Invalid email", "woo_ds_shopkeeper" );
 			$status  = [ "status" => 401 ];
 
 			return [
@@ -104,7 +104,7 @@ class DSM_REST_Main_Controller extends \WP_REST_Controller
 		if ( !$s1 || !$s2 || !$verify )
 		{
 			$code    = "dsm_rest_main_v1_invalid_secret";
-			$message = __( "Invalid secret", "woo_ds_supplier" );
+			$message = __( "Invalid secret", "woo_ds_shopkeeper" );
 			$status  = [ "status" => 401 ];
 
 			return [
