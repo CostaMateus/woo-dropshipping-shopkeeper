@@ -39,7 +39,7 @@ class DSM_Products
 			$new_columns[ $column_name ] = $column_info;
 
 			if ( "product_cat" === $column_name )
-				$new_columns[ self::DOMAIN . "_supplier" ] = __( "Supplier", "woo_ds_shopkeeper" );
+				$new_columns[ \Dropshipping_Shopkeeper::DOMAIN . "_supplier" ] = __( "Supplier", "woo_ds_shopkeeper" );
 		}
 
 		return $new_columns;
@@ -56,7 +56,7 @@ class DSM_Products
 	 */
 	public function add_column_content_supplier( $column, $product_id )
 	{
-		if ( $column === self::DOMAIN . "_supplier" )
+		if ( $column === \Dropshipping_Shopkeeper::DOMAIN . "_supplier" )
 		{
 			$product     = wc_get_product( $product_id );
 			$supplier_id = $product->get_meta( "_dsm_supplier" );

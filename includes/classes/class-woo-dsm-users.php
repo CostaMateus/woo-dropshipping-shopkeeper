@@ -19,9 +19,100 @@ class DSM_Users
      */
     public function __construct()
     {
-		add_filter( "manage_users_columns",       [ $this, "add_column_title_user"   ]        );
-		add_filter( "manage_users_custom_column", [ $this, "add_column_content_user" ], 10, 3 );
+		add_action( "show_user_profile",          [ $this, "extra_profile_fields"      ], 12    );
+		add_action( "edit_user_profile",          [ $this, "extra_profile_fields"      ], 12    );
+
+		add_action( "personal_options_update",    [ $this, "save_extra_profile_fields" ]        );
+		add_action( "edit_user_profile_update",   [ $this, "save_extra_profile_fields" ]        );
+
+		add_action( "wp_ajax_generate_secret",    [ $this, "generate_secret"           ]        );
+
+		add_filter( "manage_users_columns",       [ $this, "add_column_title_user"     ]        );
+		add_filter( "manage_users_custom_column", [ $this, "add_column_content_user"   ], 10, 3 );
     }
+
+	/**
+	 * Add extra fields to shopkeeper profile
+	 *
+	 * @since 	1.0.0
+	 * @param 	object $user
+	 * @return 	void
+	 */
+	public function extra_profile_fields( $user )
+	{
+		if ( in_array( "supplier", $user->roles ) )
+			require_once( dirname( \Dropshipping_Shopkeeper::FILE ) . "/templates/admin/supplier-profile.php" );
+	}
+
+	/**
+	 * Save change on extra fields of supplier profile
+	 *
+	 * @since 	1.0.0
+	 * @param 	string $user_id
+	 * @return 	void
+	 */
+	public function save_extra_profile_fields( $user_id )
+	{
+		$empty  = empty( $_POST[ "_wpnonce" ] );
+		$verify = !wp_verify_nonce( $_POST[ "_wpnonce" ], "update-user_" . $user_id );
+
+		if ( $empty || $verify ) return;
+
+		if ( !current_user_can( "edit_user", $user_id ) ) return false;
+
+		if ( isset( $_POST[ "woo_ds_sku_prefix" ] ) && !empty( $_POST[ "woo_ds_sku_prefix" ] ) )
+			update_user_meta( $user_id, "_dsm_sku_prefix", $_POST[ "woo_ds_sku_prefix" ] );
+
+		if ( isset( $_POST[ "woo_ds_website" ] ) && !empty( $_POST[ "woo_ds_website" ] ) )
+			update_user_meta( $user_id, "_dsm_url", $_POST[ "woo_ds_website" ] );
+
+		if ( isset( $_POST[ "woo_ds_external" ] ) && !empty( $_POST[ "woo_ds_external" ] ) )
+			update_user_meta( $user_id, "_dsm_secret_s", $_POST[ "woo_ds_external" ] );
+	}
+
+	/**
+	 * Generate secret for supplier
+	 *
+	 * @since 	1.0.0
+	 * @return 	void
+	 */
+	public function generate_secret()
+	{
+		$user_id = $_POST[ "id" ];
+
+		if ( !$user_id )
+		{
+			$message = translate( "Invalid supplier's ID.", "woo_ds_shopkeeper" );
+			return wp_send_json_error( $message, 400 );
+		}
+
+		$url_sp  = get_user_meta( $user_id, "_dsm_url", true );
+
+		if ( !$url_sp )
+		{
+			$message = translate( "Invalid supplier's URL. Fill in the 'website' field and save.", "woo_ds_shopkeeper" );
+			return wp_send_json_error( $message, 400 );
+		}
+		else
+		{
+			$user    = get_user_by( "id", $user_id );
+
+			if ( !in_array( "supplier", $user->roles ) )
+			{
+				$message = translate( "The current user is not a supplier.", "woo_ds_shopkeeper" );
+				return wp_send_json_error( $message, 400 );
+			}
+
+			$url     = get_home_url();
+			$cost    = get_option( "_dsm_hash_cost" ) ?: 12;
+			$pass    = "{$user->ID}|{$user->user_email}|{$url_sp}|{$url}";
+			$secret  = password_hash( $pass, PASSWORD_BCRYPT, [ "cost" => $cost ] );
+
+			update_user_meta( $user->ID, "_dsm_secret", $secret );
+
+			return wp_send_json_success( $secret );
+		}
+	}
 
 	/**
 	 * Adds 'DSM Keys' column header to 'Users' page immediately after 'Role' column.
@@ -39,7 +130,7 @@ class DSM_Users
 			foreach ( $columns as $column_name => $column_info )
 			{
 				$new_columns[ $column_name ] = $column_info;
-				$name                        = self::DOMAIN . "_user_keys";
+				$name                        = \Dropshipping_Shopkeeper::DOMAIN . "_user_keys";
 
 				if ( "role" === $column_name )
 					$new_columns[ $name ] = "DSM Keys";
@@ -64,7 +155,7 @@ class DSM_Users
 	{
 		if ( isset( $_GET[ "role" ] ) && $_GET[ "role" ] === "supplier" )
 		{
-			$name = self::DOMAIN . "_user_keys";
+			$name = \Dropshipping_Shopkeeper::DOMAIN . "_user_keys";
 
 			if ( $name === $column )
 			{

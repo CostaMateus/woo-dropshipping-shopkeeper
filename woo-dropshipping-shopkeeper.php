@@ -243,14 +243,6 @@ class Dropshipping_Shopkeeper
 		add_action( "admin_menu",                  [ $this, "add_admin_menu"            ], 9  );
         add_action( "admin_enqueue_scripts",       [ $this, "add_admin_style_script"    ]     );
 
-		add_action( "show_user_profile",           [ $this, "extra_profile_fields"      ], 12 );
-		add_action( "edit_user_profile",           [ $this, "extra_profile_fields"      ], 12 );
-
-		add_action( "personal_options_update",     [ $this, "save_extra_profile_fields" ]     );
-		add_action( "edit_user_profile_update",    [ $this, "save_extra_profile_fields" ]     );
-
-		add_action( "wp_ajax_generate_secret",     [ $this, "generate_secret"           ]     );
-
 		add_action( "admin_post_dsm_save_general", [ $this, "save_general_tab_settings" ]     );
     }
 
@@ -262,9 +254,8 @@ class Dropshipping_Shopkeeper
 	 */
     public function add_filters()
     {
-        add_filter( "wc_order_statuses",                                    [ $this, "add_shipped_to_order_statuses" ] );
-		add_filter( "plugin_action_links_" . plugin_basename( self::FILE ), [ $this, "plugin_action_links"           ] );
-		add_filter( "http_request_args",                                    [ $this, "accept_unsafe_urls"            ], 90, 2 );
+		add_filter( "plugin_action_links_" . plugin_basename( self::FILE ), [ $this, "plugin_action_links" ]        );
+		add_filter( "http_request_args",                                    [ $this, "accept_unsafe_urls"  ], 90, 2 );
 	}
 
 	/**
@@ -456,28 +447,6 @@ class Dropshipping_Shopkeeper
     }
 
 	/**
-	 * Add 'shipped' status after 'on-hold' status.
-	 *
-	 * @since 	1.0.0
-     * @param   array $order_statuses
-	 * @return 	void
-	 */
-    public function add_shipped_to_order_statuses( $order_statuses )
-    {
-        $new_order_statuses = [];
-
-        foreach ( $order_statuses as $key => $status )
-        {
-            $new_order_statuses[ $key ] = $status;
-
-            if ( $key === "wc-on-hold" )
-                $new_order_statuses[ "wc-shipped" ] = "Shipped";
-        }
-
-        return $new_order_statuses;
-    }
-
-	/**
 	 * Action links.
 	 *
 	 * @since 	1.0.0
@@ -638,89 +607,6 @@ class Dropshipping_Shopkeeper
 
 				echo "<div class='notice notice-success is-dismissible'><p>{$message}</p></div>";
 			}
-		}
-	}
-
-	/**
-	 * Add extra fields to shopkeeper profile
-	 *
-	 * @since 	1.0.0
-	 * @param 	object $user
-	 * @return 	void
-	 */
-	public static function extra_profile_fields( $user )
-	{
-		if ( in_array( "supplier", $user->roles ) )
-			require_once( dirname( self::FILE ) . "/templates/admin/supplier-profile.php" );
-	}
-
-	/**
-	 * Save change on extra fields of supplier profile
-	 *
-	 * @since 	1.0.0
-	 * @param 	string $user_id
-	 * @return 	void
-	 */
-	public static function save_extra_profile_fields( $user_id )
-	{
-		$empty  = empty( $_POST[ "_wpnonce" ] );
-		$verify = !wp_verify_nonce( $_POST[ "_wpnonce" ], "update-user_" . $user_id );
-
-		if ( $empty || $verify ) return;
-
-		if ( !current_user_can( "edit_user", $user_id ) ) return false;
-
-		if ( isset( $_POST[ "woo_ds_sku_prefix" ] ) && !empty( $_POST[ "woo_ds_sku_prefix" ] ) )
-			update_user_meta( $user_id, "_dsm_sku_prefix", $_POST[ "woo_ds_sku_prefix" ] );
-
-		if ( isset( $_POST[ "woo_ds_website" ] ) && !empty( $_POST[ "woo_ds_website" ] ) )
-			update_user_meta( $user_id, "_dsm_url", $_POST[ "woo_ds_website" ] );
-
-		if ( isset( $_POST[ "woo_ds_external" ] ) && !empty( $_POST[ "woo_ds_external" ] ) )
-			update_user_meta( $user_id, "_dsm_secret_s", $_POST[ "woo_ds_external" ] );
-	}
-
-	/**
-	 * Generate secret for supplier
-	 *
-	 * @since 	1.0.0
-	 * @return 	void
-	 */
-	public function generate_secret()
-	{
-		$user_id = $_POST[ "id"  ];
-
-		if ( !$user_id )
-		{
-			$message = translate( "Invalid supplier's ID.", "woo_ds_shopkeeper" );
-			return wp_send_json_error( $message, 400 );
-		}
-
-		$url_sp  = get_user_meta( $user_id, "_dsm_url", true );
-
-		if ( !$url_sp )
-		{
-			$message = translate( "Invalid supplier's URL. Fill in the 'website' field and save.", "woo_ds_shopkeeper" );
-			return wp_send_json_error( $message, 400 );
-		}
-		else
-		{
-			$user    = get_user_by( "id", $user_id );
-
-			if ( !in_array( "supplier", $user->roles ) )
-			{
-				$message = translate( "The current user is not a supplier.", "woo_ds_shopkeeper" );
-				return wp_send_json_error( $message, 400 );
-			}
-
-			$url     = get_home_url();
-			$cost    = get_option( "_dsm_hash_cost" ) ?: 12;
-			$pass    = "{$user->ID}|{$user->user_email}|{$url_sp}|{$url}";
-			$secret  = password_hash( $pass, PASSWORD_BCRYPT, [ "cost" => $cost ] );
-
-			update_user_meta( $user->ID, "_dsm_secret", $secret );
-
-			return wp_send_json_success( $secret );
 		}
 	}
 

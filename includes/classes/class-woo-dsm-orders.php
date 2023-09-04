@@ -19,9 +19,9 @@ class DSM_Orders
      */
     public function __construct()
     {
-        add_action( "woocommerce_thankyou", [ $this, "send_order_to_suppliers" ], 1 );
-		add_filter( "bulk_actions-edit-shop_order",                         [ $this, "add_bulk_actions_shop_order"   ], 20, 1 );
-
+        add_action( "woocommerce_thankyou",         [ $this, "send_order_to_suppliers"       ], 1     );
+		add_filter( "bulk_actions-edit-shop_order", [ $this, "add_bulk_actions_shop_order"   ], 20, 1 );
+        add_filter( "wc_order_statuses",            [ $this, "add_shipped_to_order_statuses" ]        );
     }
 
     /**
@@ -31,7 +31,7 @@ class DSM_Orders
      * @param   int  $order_id
      * @return  void
      */
-    public static function send_order_to_suppliers( $order_id )
+    public function send_order_to_suppliers( $order_id )
     {
 		$order       = wc_get_order( $order_id );
         $products    = [];
@@ -164,7 +164,7 @@ class DSM_Orders
      * @param   string  $error
      * @return  void
      */
-    public static function save_error( &$order, $products, $user, $error = null )
+    public function save_error( &$order, $products, $user, $error = null )
     {
         $last = array_key_last( $products );
         $skus = "";
@@ -211,6 +211,28 @@ class DSM_Orders
 
 		return $new_actions;
 	}
+
+	/**
+	 * Add 'shipped' status after 'on-hold' status.
+	 *
+	 * @since 	1.0.0
+     * @param   array $order_statuses
+	 * @return 	void
+	 */
+    public function add_shipped_to_order_statuses( $order_statuses )
+    {
+        $new_order_statuses = [];
+
+        foreach ( $order_statuses as $key => $status )
+        {
+            $new_order_statuses[ $key ] = $status;
+
+            if ( $key === "wc-on-hold" )
+                $new_order_statuses[ "wc-shipped" ] = "Shipped";
+        }
+
+        return $new_order_statuses;
+    }
 }
 
 new DSM_Orders();
