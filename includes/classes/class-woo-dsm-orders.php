@@ -19,9 +19,12 @@ class DSM_Orders
      */
     public function __construct()
     {
-        add_action( "woocommerce_thankyou",         [ $this, "send_order_to_suppliers"       ], 1     );
-		add_filter( "bulk_actions-edit-shop_order", [ $this, "add_bulk_actions_shop_order"   ], 20, 1 );
-        add_filter( "wc_order_statuses",            [ $this, "add_shipped_to_order_statuses" ]        );
+        add_action( "woocommerce_thankyou",                  [ $this, "send_order_to_suppliers"       ], 1     );
+
+		add_filter( "bulk_actions-edit-shop_order",          [ $this, "add_bulk_actions_shop_order"   ], 20, 1 );
+        add_filter( "wc_order_statuses",                     [ $this, "add_shipped_to_order_statuses" ]        );
+		add_filter( "manage_edit-shop_order_columns",        [ $this, "add_column_title_shopkeeper"   ]        );
+		add_filter( "manage_shop_order_posts_custom_column", [ $this, "add_column_content_shopkeeper" ], 10, 3 );
     }
 
     /**
@@ -233,6 +236,69 @@ class DSM_Orders
 
         return $new_order_statuses;
     }
+
+	/**
+	 * Adds 'Shopkeeper' column header to 'All Orders' page immediately after 'Status' column.
+	 *
+	 * @since 	1.0.0
+	 * @param 	array 	$columns
+	 * @return 	array	$new_columns
+	 */
+	public function add_column_title_shopkeeper( $columns )
+	{
+		$new_columns = [];
+
+		foreach ( $columns as $column_name => $column_info )
+		{
+			$new_columns[ $column_name ] = $column_info;
+
+			if ( "order_status" === $column_name )
+				$new_columns[ \Dropshipping_Shopkeeper::DOMAIN . "_supplier" ] = __( "Supplier", "woo_ds_shopkeeper" );
+		}
+
+		return $new_columns;
+	}
+
+	/**
+	 * Adds 'Supplier' column content to 'All Products' page immediately after 'Categories' column.
+	 *
+	 * @since 	1.0.0
+	 * @param 	mixed 	$val
+	 * @param 	string 	$column
+	 * @param 	string 	$order_id
+	 * @return 	mixed 	$val
+	 */
+	public function add_column_content_shopkeeper( $column, $order_id )
+	{
+		if ( $column === \Dropshipping_Shopkeeper::DOMAIN . "_supplier" )
+		{
+            $msg   = "";
+            $ids   = [];
+			$order = wc_get_order( $order_id );
+
+            foreach ( $order->get_items() as $item )
+            {
+                $product     = $item->get_product();
+                $supplier_id = $product->get_meta( "_dsm_supplier", true );
+
+                if ( !$supplier_id ) continue;
+                if ( isset( $ids[ $supplier_id ] ) ) continue;
+
+                $ids[] = $supplier_id;
+            }
+
+            foreach ( $ids as $id )
+            {
+                $shopkeeper = get_user_by( "id", $id );
+
+                $msg       .= "{$shopkeeper->user_login}";
+
+                if ( count( $ids ) > 1 ) $msg .= "<br>";
+            }
+
+            echo $msg;
+		}
+	}
 }
 
 new DSM_Orders();

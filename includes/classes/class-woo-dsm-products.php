@@ -19,8 +19,8 @@ class DSM_Products
      */
     public function __construct()
     {
-		add_filter( "manage_edit-product_columns", [ $this, "add_column_title_supplier"   ]        );
-		add_filter( "manage_posts_custom_column",  [ $this, "add_column_content_supplier" ], 10, 3 );
+		add_filter( "manage_edit-product_columns",        [ $this, "add_column_title_supplier"   ]        );
+		add_filter( "manage_product_posts_custom_column", [ $this, "add_column_content_supplier" ], 10, 3 );
     }
 
 	/**
