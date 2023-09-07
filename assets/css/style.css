@@ -236,8 +236,8 @@ table.wp-list-table mark.onbackorder {
 }
 table.wp-list-table .column-name,
 table.wp-list-table .column-supplier,
-table.wp-list-table .column-sku {
-    width: auto !important;
+table.wp-list-table .column-sku,
+table.wp-list-table .column-woo_ds_shopkeeper_supplier {
     min-width: 15ch !important;
 }
 table.wp-list-table .column-stock,
@@ -246,10 +246,6 @@ table.wp-list-table .column-s_price,
 table.wp-list-table .column-categories,
 table.wp-list-table .column-date {
     width: auto !important;
-}
-table.wp-list-table .column-woo_ds_shopkeeper_supplier {
-    width: auto !important;
-    min-width: 15ch !important;
 }
 
 table.wp-list-table span.wc-image {
