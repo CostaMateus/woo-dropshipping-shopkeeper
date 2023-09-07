@@ -65,6 +65,8 @@
 
         function preventSubmitBulkActions( e, a )
         {
+            if ( a == "-1" ) return;
+
             const query  = window.location.search;
             const params = new URLSearchParams( query );
 
@@ -76,11 +78,9 @@
 
             e.preventDefault();
 
-            if ( $( '#dsm-users-list-table-form' ).length )
+            if ( $( '#dsm-users-list-table-form' ).length > 0 )
             {
                 const users = $( '#dsm-users-list-table-form input[name^="users"]:checked' );
-
-                if ( a == "-1" ) return;
 
                 if ( users.length == 0 )
                 {
@@ -126,11 +126,7 @@
 
             if ( $( '#dsm-preview_products-list-table-form' ).length > 0 )
             {
-                console.log( "test" );
-
                 const preview_products = $( '#dsm-preview_products-list-table-form input[name^="products"]:checked' );
-
-                if ( a == "-1" ) return;
 
                 if ( preview_products.length == 0 )
                 {
