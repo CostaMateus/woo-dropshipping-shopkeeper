@@ -30,6 +30,8 @@ $o_table = new DSM_Orders_table();
 		</h3>
 		<div id="dsm-instructions" class="dsm-d-none" >
 			<p>
+				<?php _e( "- Only orders that contain at least one product, which is from a supplier registered through this plugin, will be listed here.", "woo_ds_shopkeeper" ); ?>
+				<br>
 				<?php _e( "- In the 'Suppliers' column it shows the list of suppliers that have products in that order and, in parentheses, the number of different products. Example <strong>Supplier_name (2)</strong>.", "woo_ds_shopkeeper" ); ?>
 			</p>
 			<p>
