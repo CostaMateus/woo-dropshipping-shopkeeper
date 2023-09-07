@@ -68,23 +68,30 @@ class DSM_Orders_table extends \WP_List_Table
             "type"  => "shop_order",
         ] );
 
-        foreach ( $this->orders as &$order )
+        foreach ( $this->orders as $key => &$order )
         {
-            $txt = "";
-            $ids = [];
+            $txt   = "";
+            $ids   = [];
+            $unset = false;
 
             foreach ( $order->get_items() as $item )
             {
                 $product     = $item->get_product();
                 $supplier_id = $product->get_meta( "_dsm_supplier", true );
 
-                if ( !$supplier_id ) continue;
+                if ( !$supplier_id )
+                {
+                    $unset = true;
+                    continue;
+                }
 
                 if ( !isset( $ids[ $supplier_id ] ) )
                     $ids[ $supplier_id ] = 1;
                 else
                     $ids[ $supplier_id ]++;
             }
+
+            if ( $unset ) unset( $this->orders[ $key ] );
 
             foreach ( $this->users as $user )
             {
