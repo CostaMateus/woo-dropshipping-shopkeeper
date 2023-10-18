@@ -19,12 +19,16 @@ class DSM_Orders
      */
     public function __construct()
     {
-        add_action( "woocommerce_thankyou",                  [ $this, "send_order_to_suppliers"       ], 1     );
+        add_action( "woocommerce_thankyou",                      [ $this, "send_order_to_suppliers"       ], 1     );
 
-		add_filter( "bulk_actions-edit-shop_order",          [ $this, "add_bulk_actions_shop_order"   ], 20, 1 );
-        add_filter( "wc_order_statuses",                     [ $this, "add_shipped_to_order_statuses" ]        );
-		add_filter( "manage_edit-shop_order_columns",        [ $this, "add_column_title_shopkeeper"   ]        );
-		add_filter( "manage_shop_order_posts_custom_column", [ $this, "add_column_content_shopkeeper" ], 10, 3 );
+		add_filter( "bulk_actions-edit-shop_order",              [ $this, "add_bulk_actions_shop_order"   ], 20, 1 );
+        add_filter( "wc_order_statuses",                         [ $this, "add_shipped_to_order_statuses" ]        );
+		add_filter( "manage_edit-shop_order_columns",            [ $this, "add_column_title_shopkeeper"   ]        );
+		add_filter( "manage_shop_order_posts_custom_column",     [ $this, "add_column_content_shopkeeper" ], 10, 3 );
+
+        // Order Box Actions
+        add_action( "woocommerce_order_actions",                 [ $this, "add_order_box_action"          ]        );
+        add_action( "woocommerce_order_action_dsm_order_action", [ $this, "process_order_box_action"      ]        );
     }
 
     /**
@@ -84,8 +88,12 @@ class DSM_Orders
 
         $order->update_meta_data( "_has_dsm_order", true );
 
-        foreach ( $products as $supplier_id => $products )
+        foreach ( $products as $supplier_id => $s_products )
         {
+            $sent     = $order->get_meta( "_dsm_order_sent_{$order_id}_{$supplier_id}" );
+
+            if ( $sent ) continue;
+
             $user     = get_user_by( "id", $supplier_id );
             $url      = get_user_meta( $user->ID, "_dsm_url"     ,   true );
             $secret   = get_user_meta( $user->ID, "_dsm_secret"  ,   true );
@@ -93,7 +101,7 @@ class DSM_Orders
 
             if ( !$url || !$secret || !$secret_s )
             {
-                self::save_error( $order, $products, $user );
+                self::save_error( $order, $s_products, $user );
                 continue;
             }
 
@@ -116,7 +124,7 @@ class DSM_Orders
                     "customer_ip"     => $customer_ip,
                     "billing"         => $billing,
                     "shipping"        => $shipping,
-                    "products"        => $products,
+                    "products"        => $s_products,
                 ] )
             ];
 
@@ -129,7 +137,7 @@ class DSM_Orders
 
             if ( is_wp_error( $response ) )
             {
-                self::save_error( $order, $products, $user, $response->get_error_message() );
+                self::save_error( $order, $s_products, $user, $response->get_error_message() );
                 continue;
             }
 
@@ -138,18 +146,19 @@ class DSM_Orders
 
             if ( $status != 200 )
             {
-                self::save_error( $order, $products, $user, json_encode( $data ) );
+                self::save_error( $order, $s_products, $user, json_encode( $data ) );
                 continue;
             }
 
             $msg      = [
                 "Order sent successfully",
                 "Supplier: {$user->user_login} ({$supplier_id})",
-                // "Pay link: {$data[ "link" ]}",
                 "Order ID: #{$data[ "order_id" ]}",
+                // "Pay link: {$data[ "link" ]}",
             ];
 
             $order->add_order_note( implode( "\n", $msg ) );
+            $order->add_meta_data( "_dsm_order_sent_{$order_id}_{$supplier_id}", true );
 
             \Dropshipping_Shopkeeper::log( "INFO - " . implode( " - ", $msg ) );
         }
@@ -298,6 +307,53 @@ class DSM_Orders
 
             echo $msg;
 		}
+	}
+
+	/**
+	 * Add custom action to order box.
+	 *
+     * @since   1.0.0
+	 * @param 	array $actions
+     * @return  array
+	 */
+	public function add_order_box_action( $actions )
+	{
+		global $theorder;
+
+        $metas = [];
+
+        foreach ( $theorder->get_items() as $item )
+        {
+            $product     = $item->get_product();
+            $supplier_id = $product->get_meta( "_dsm_supplier", true );
+
+            if ( !$supplier_id ) continue;
+            if ( isset( $metas[ $supplier_id ] ) ) continue;
+
+            $sent        = $theorder->get_meta( "_dsm_order_sent_{$theorder->id}_{$supplier_id}" );
+
+            if ( !$sent ) $metas[] = $supplier_id;
+        }
+
+		if ( !empty( $metas ) )
+		{
+			$actions[ "dsm_order_action" ] = __( "Send order to supplier", "woo_ds_shopkeeper" );
+
+			return $actions;
+		}
+
+		return $actions;
+	}
+
+	/**
+	 * Process custom action order box.
+	 *
+     * @since   1.0.0
+     * @return  void
+	 */
+	public function process_order_box_action( $order )
+	{
+        $this->send_order_to_suppliers( $order->get_id() );
 	}
 }
 
