@@ -273,3 +273,55 @@ table.wp-list-table span.wc-image::before {
     text-align: center;
     content: "\f128";
 }
+
+.dsm-orders-tags-supplier {
+    margin: 0;
+    overflow: hidden;
+    zoom: 1;
+}
+.inside ul.dsm-orders-tags-supplier li {
+    padding: 6px 10px;
+    box-sizing: border-box;
+}
+
+.dsm-orders-tags-supplier li#dsm-suppliers-ids {
+    overflow: hidden;
+}
+.dsm-orders-tags-supplier li.wide {
+    width: auto;
+    float: none;
+    clear: both;
+    padding: 6px;
+    text-align: left;
+    overflow: hidden;
+}
+.dsm-orders-tags-supplier li {
+    border-top: 1px solid #fff;
+    border-bottom: 1px solid #ddd;
+    padding: 6px 0;
+    margin: 0;
+    line-height: 1.6em;
+    float: left;
+    width: 50%;
+    text-align: center;
+}
+.inside ul.dsm-orders-tags-supplier li:last-child {
+    border-bottom: 0;
+}
+
+.inside ul.dsm-orders-tags-supplier li {
+    padding: 6px 10px;
+    box-sizing: border-box;
+}
+
+#poststuff #dsm-tags-suppliers .inside {
+    margin: 0;
+    padding: 0;
+}
+.dsm-orders-tags-supplier li .save-tag-supplier {
+    float: right;
+}
+#dsm-tags-success {
+    color: #7AD03A;
+    font-weight: 700;
+}
