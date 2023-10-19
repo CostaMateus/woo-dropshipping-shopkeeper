@@ -195,5 +195,16 @@
                 $( "#dsm-instructions" ).addClass( "dsm-d-none" );
         } );
 
+        $( "#dsm-tag-supplier" ).change( function() {
+            $( "#dsm-tag-supplier-label" ).html( this.files[ 0 ].name );
+        } );
+
+        $( "#dsm-send-tag" ).on( "click", function() {
+            let s_id  = $( "#dsm-supplier-id"  ).val();
+            let f_tag = $( "#dsm-tag-supplier" ).val();
+
+            if ( s_id && f_tag ) $( "#dsm-modal-load" ).removeClass( "dsm-d-none" );
+        } );
+
     } );
 }( jQuery ) );
