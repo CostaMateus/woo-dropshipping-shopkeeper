@@ -217,7 +217,8 @@ table.wp-list-table mark.outofstock {
 #dsm-instructions .downprice,
 table.wp-list-table .ispublish,
 table.wp-list-table mark.downprice,
-table.wp-list-table mark.instock {
+table.wp-list-table mark.instock,
+#dsm-tags-success {
     color: #7AD03A !important;
 }
 #dsm-instructions .evenprice,
@@ -320,8 +321,4 @@ table.wp-list-table span.wc-image::before {
 }
 .dsm-orders-tags-supplier li .save-tag-supplier {
     float: right;
-}
-#dsm-tags-success {
-    color: #7AD03A;
-    font-weight: 700;
 }

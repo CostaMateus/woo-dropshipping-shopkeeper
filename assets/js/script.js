@@ -196,7 +196,20 @@
         } );
 
         $( "#dsm-tag-supplier" ).change( function() {
-            $( "#dsm-tag-supplier-label" ).html( this.files[ 0 ].name );
+            $( "#dsm-tag-error-type" ).addClass( "dsm-d-none" );
+
+            let supp_types = [
+                "application/pdf",
+                "image/jpeg",
+                "image/png",
+            ];
+
+            if ( supp_types.includes( this.files[ 0 ].type ) )
+                $( "#dsm-tag-supplier-label" ).html( this.files[ 0 ].name );
+            else
+                $( "#dsm-tag-error-type" ).removeClass( "dsm-d-none" );
+
+            console.log( this.files[ 0 ] );
         } );
 
         $( "#dsm-send-tag" ).on( "click", function() {
