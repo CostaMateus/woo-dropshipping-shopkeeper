@@ -275,6 +275,7 @@ class Dropshipping_Shopkeeper
 
 		require_once( dirname( self::FILE ) . "/includes/classes/class-woo-dsm-orders.php"                );
 		require_once( dirname( self::FILE ) . "/includes/classes/class-woo-dsm-products.php"              );
+		require_once( dirname( self::FILE ) . "/includes/classes/class-woo-dsm-tags.php"                  );
 		require_once( dirname( self::FILE ) . "/includes/classes/class-woo-dsm-users.php"                 );
 	}
 
