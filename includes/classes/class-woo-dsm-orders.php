@@ -294,54 +294,56 @@ class DSM_Orders
             $ids   = [];
             $order = wc_get_order( $order_id );
 
-            foreach ( $order->get_items() as $item )
+            if ( $order->get_meta( "_has_dsm_order" ) )
             {
-                $product     = $item->get_product();
-                $supplier_id = $product->get_meta( "_dsm_supplier", true );
-
-                if ( !$supplier_id ) continue;
-                if ( isset( $ids[ $supplier_id ] ) ) continue;
-
-                $ids[] = $supplier_id;
-            }
-
-            if ( $column === \Dropshipping_Shopkeeper::DOMAIN . "_supplier" )
-            {
-                $last_id = end( $ids );
-
-                foreach ( $ids as $id )
+                foreach ( $order->get_items() as $item )
                 {
-                    $supplier  = get_user_by( "id", $id );
-                    $msg      .= "{$supplier->user_login}";
+                    $product     = $item->get_product();
+                    $supplier_id = $product->get_meta( "_dsm_supplier", true );
 
-                    if ( count( $ids ) > 1 && $last_id != $id )
-                        $msg .= "<br>";
+                    if ( !$supplier_id ) continue;
+                    if ( isset( $ids[ $supplier_id ] ) ) continue;
+
+                    $ids[] = $supplier_id;
                 }
 
-                echo $msg;
-            }
-
-            if ( $column === \Dropshipping_Shopkeeper::DOMAIN . "_supplier_tag" )
-            {
-                $pending = false;
-
-                foreach ( $ids as $id )
+                if ( $column === \Dropshipping_Shopkeeper::DOMAIN . "_supplier" )
                 {
-                    $sent_tag = $order->get_meta( "_dsm_order_sent_tag_{$order_id}_{$id}" );
+                    $last_id = end( $ids );
 
-                    if ( !$sent_tag )
+                    foreach ( $ids as $id )
                     {
-                        echo "<mark class='outofstock'>" . __( "Supplier waiting for tag.", "woo_ds_shopkeeper" ) . "</mark>";
-                        $pending = true;
-                        break;
+                        $supplier  = get_user_by( "id", $id );
+                        $msg      .= "{$supplier->user_login}";
+
+                        if ( count( $ids ) > 1 && $last_id != $id )
+                            $msg .= "<br>";
                     }
+
+                    echo $msg;
                 }
 
-                if ( !$pending )
-                    echo "<mark class='instock'>" . __( "All tags sent.", "woo_ds_shopkeeper" ) . "</mark>";
+                if ( $column === \Dropshipping_Shopkeeper::DOMAIN . "_supplier_tag" )
+                {
+                    $pending = false;
+
+                    foreach ( $ids as $id )
+                    {
+                        $sent_tag = $order->get_meta( "_dsm_order_sent_tag_{$order_id}_{$id}" );
+
+                        if ( !$sent_tag )
+                        {
+                            echo "<mark class='outofstock'>" . __( "Supplier waiting for tag.", "woo_ds_shopkeeper" ) . "</mark>";
+                            $pending = true;
+                            break;
+                        }
+                    }
+
+                    if ( !$pending )
+                        echo "<mark class='instock'>" . __( "All tags sent.", "woo_ds_shopkeeper" ) . "</mark>";
+                }
             }
         }
-
 	}
 
 	/**
