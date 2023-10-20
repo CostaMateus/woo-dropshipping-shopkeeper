@@ -67,22 +67,24 @@ class DSM_Tags
     {
 		global $theorder;
 
-		$order         = $theorder;
-		$order_id      = $order->get_id();
+		$order     = $theorder;
 
-        $suppliers     = [];
+        if ( !$order->get_meta( "_has_dsm_order" ) ) return;
+
+		$order_id  = $order->get_id();
+        $suppliers = [];
 
         foreach ( $order->get_items() as $item )
         {
             $product     = $item->get_product();
-
             $supplier_id = $product->get_meta( "_dsm_supplier", true );
-            if ( !$supplier_id ) continue;
-
             $sent_tag    = $order->get_meta( "_dsm_order_sent_tag_{$order_id}_{$supplier_id}" );
-            if ( $sent_tag ) continue;
+            $s_order_id  = $order->get_meta( "_dsm_order_id_{$supplier_id}", true );
 
+            if ( !$supplier_id                 ) continue;
+            if ( $sent_tag                     ) continue;
             if ( isset( $ids[ $supplier_id ] ) ) continue;
+            if ( !$s_order_id                  ) continue;
 
             $supplier    = get_user_by( "id", $supplier_id );
 
@@ -101,53 +103,38 @@ class DSM_Tags
         }
         else
         {
-            $s_order_id = $order->get_meta( "_dsm_order_id_{$supplier_id}", true );
-
-            if ( !$s_order_id )
-            {
-                ?>
-                <ul class="dsm-orders-tags-supplier submitbox" >
-                    <li class="wide dsm-fw-bold" id="dsm-tags-failed" >
-                        <p ><?php echo __( "This order has incomplete data, making it impossible to send the tag.", "woo_ds_shopkeeper" ); ?></p>
-                    </li>
-                </ul>
-                <?php
-            }
-            else
-            {
-                wp_nonce_field( "dsm_tag_nonce_action", "dsm_tag_nonce" );
-                ?>
-                <ul class="dsm-orders-tags-supplier submitbox" >
-                    <li class="wide" id="dsm-suppliers-ids" >
-                        <select id="dsm-supplier-id" name="dsm-supplier-id" style="width:100%; margin:0;"  >
-                            <option value="" >
-                                <?php esc_html_e( "Choose a supplier...", "woo_ds_shopkeeper" ); ?>
+            wp_nonce_field( "dsm_tag_nonce_action", "dsm_tag_nonce" );
+            ?>
+            <ul class="dsm-orders-tags-supplier submitbox" >
+                <li class="wide" id="dsm-suppliers-ids" >
+                    <select id="dsm-supplier-id" name="dsm-supplier-id" style="width:100%; margin:0;"  >
+                        <option value="" >
+                            <?php esc_html_e( "Choose a supplier...", "woo_ds_shopkeeper" ); ?>
+                        </option>
+                        <?php foreach ( $suppliers as $id => $name ) { ?>
+                            <option value="<?php echo $id; ?>" >
+                                <?php echo esc_html( $name ); ?>
                             </option>
-                            <?php foreach ( $suppliers as $id => $name ) { ?>
-                                <option value="<?php echo $id; ?>" >
-                                    <?php echo esc_html( $name ); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                    </li>
-                    <li class="wide" >
-                        <span id="dsm-tag-error-type" class="dsm-d-none dsm-text-danger dsm-fw-bold" style="padding-bottom:6px;" >
-                            <?php _e( "Only these types are supported:<br>JPG, JPEG, PNG, PDF", "woo_dsm_shopkeeper" );?>
-                        </span>
-                        <label id="dsm-tag-supplier-label" for="dsm-tag-supplier" style="display:block; width:auto; background-color:#f5f5f5; border:1px solid #ccc; padding:5px; cursor:pointer;" >
-                            Select tag file
-                        </label>
-                        <input id="dsm-tag-supplier" type="file" name="dsm-tag-supplier" class="dsm-d-none" >
-                    </li>
+                        <?php } ?>
+                    </select>
+                </li>
+                <li class="wide" >
+                    <span id="dsm-tag-error-type" class="dsm-d-none dsm-text-danger dsm-fw-bold" style="padding-bottom:6px;" >
+                        <?php _e( "Only these types are supported:<br>JPG, JPEG, PNG, PDF", "woo_dsm_shopkeeper" );?>
+                    </span>
+                    <label id="dsm-tag-supplier-label" for="dsm-tag-supplier" style="display:block; width:auto; background-color:#f5f5f5; border:1px solid #ccc; padding:5px; cursor:pointer;" >
+                        Select tag file
+                    </label>
+                    <input id="dsm-tag-supplier" type="file" name="dsm-tag-supplier" class="dsm-d-none" >
+                </li>
 
-                    <li class="wide" >
-                        <button id="dsm-send-tag" type="submit" class="button save-tag-supplier button-primary" name="dsm-send-tag" value="send" >
-                            <?php echo esc_html__( "Send", "woo_ds_shopkeeper" ); ?>
-                        </button>
-                    </li>
-                </ul>
-                <?php
-            }
+                <li class="wide" >
+                    <button id="dsm-send-tag" type="submit" class="button save-tag-supplier button-primary" name="dsm-send-tag" value="send" >
+                        <?php echo esc_html__( "Send", "woo_ds_shopkeeper" ); ?>
+                    </button>
+                </li>
+            </ul>
+            <?php
         }
     }
 
