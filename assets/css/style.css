@@ -211,7 +211,8 @@ table.wp-list-table mark.evenprice {
 #dsm-instructions .upprice,
 table.wp-list-table .isdraft,
 table.wp-list-table mark.upprice,
-table.wp-list-table mark.outofstock {
+table.wp-list-table mark.outofstock,
+#dsm-tags-failed {
     color: #AA4444 !important;
 }
 #dsm-instructions .downprice,
