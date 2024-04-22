@@ -19,6 +19,8 @@ defined( "ABSPATH" ) || exit;
 register_activation_hook(   __FILE__, [ "Dropshipping_Shopkeeper", "on_activation"   ] );
 register_deactivation_hook( __FILE__, [ "Dropshipping_Shopkeeper", "on_deactivation" ] );
 
+add_action( "plugins_loaded", [ "Dropshipping_Shopkeeper", "init" ] );
+
 class Dropshipping_Shopkeeper
 {
 	/**
