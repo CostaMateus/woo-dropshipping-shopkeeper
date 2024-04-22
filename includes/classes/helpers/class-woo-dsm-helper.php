@@ -108,6 +108,8 @@ class DSM_Helper
             "categories"        => $categories,
             "images"            => $images,
             "attributes"        => $attributes,
+
+            "variations"        => $product->variations,
         ];
 
         return $data;
