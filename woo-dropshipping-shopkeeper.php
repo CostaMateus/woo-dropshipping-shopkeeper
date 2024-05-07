@@ -93,23 +93,18 @@ class Dropshipping_Shopkeeper
 	 * Log
 	 *
 	 * @since 	1.0.0
-	 * @param 	string 		$message
-	 * @param 	boolean 	$is_error
+	 * @param 	string 	$type
+	 * @param 	string 	$message
+	 * @param 	bool 	$is_error
 	 * @return 	void
 	 */
-	public static function log( $message, $is_error = false )
+	public static function log( string $type, string $message, bool $is_error = false )
 	{
 		$debug = get_option( "_dsm_debug" );
-		$log   = ( function_exists( "wc_get_logger" ) ) ? wc_get_logger() : new WC_Logger();
+		$log   = new WC_Logger( [ self::DOMAIN ] );
 
-		if ( $debug )
-		{
-			$log->add( self::DOMAIN, $message );
-		}
-		else if ( $is_error )
-		{
-			$log->add( self::DOMAIN, $message );
-		}
+		if ( $debug || $is_error )
+			$log->$type( $message );
 	}
 
 	/**
@@ -373,10 +368,7 @@ class Dropshipping_Shopkeeper
 	 */
 	public static function remove_role()
 	{
-		$supplier = get_role( "supplier" );
-		$caps     = $supplier->capabilities;
-
-		foreach ( $caps as $cap ) $supplier->remove_cap( $cap );
+		remove_role( "supplier" );
 	}
 
 	/**
@@ -438,6 +430,7 @@ class Dropshipping_Shopkeeper
 	{
 		delete_option( "_dsm_email_general"      );
 		delete_option( "_dsm_categories_general" );
+		delete_option( "_dsm_debug"              );
 	}
 
     /**
