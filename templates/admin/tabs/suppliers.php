@@ -53,7 +53,7 @@ $nu_text = __( "Add New", "woo_ds_shopkeeper" );
 				<br>
 				<?php _e( "(1) Need to have SKU Prefix configured.", "woo_ds_shopkeeper" ); ?>
 				<br>
-				<?php _e( "(2) Will show only products of the simple type and that have the published status.", "woo_ds_shopkeeper" ); ?>
+				<?php _e( "(2) Will show only products of the simple/variable type and that have the published status.", "woo_ds_shopkeeper" ); ?>
 				<br>
 				<?php _e( "(3) Only one supplier can be selected.", "woo_ds_shopkeeper" ); ?>
 			</p>
