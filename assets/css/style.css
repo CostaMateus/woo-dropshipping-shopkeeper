@@ -241,13 +241,18 @@ table.wp-list-table .column-supplier,
 table.wp-list-table .column-sku,
 table.wp-list-table .column-woo_ds_shopkeeper_supplier {
     min-width: 15ch !important;
+    white-space: nowrap;
+    word-break: normal;
 }
 table.wp-list-table .column-stock,
 table.wp-list-table .column-price,
 table.wp-list-table .column-s_price,
 table.wp-list-table .column-categories,
+table.wp-list-table .column-product_tag,
 table.wp-list-table .column-date {
     width: auto !important;
+    white-space: nowrap;
+    word-break: normal;
 }
 
 table.wp-list-table span.wc-image {
