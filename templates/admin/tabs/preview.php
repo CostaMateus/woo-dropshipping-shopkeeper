@@ -14,8 +14,7 @@ use \Dropshipping_Shopkeeper\Classes\Tables\DSM_Preview_table;
 
 $pv_table = new DSM_Preview_table();
 
-$import_cat = ( get_option( "_dsm_categories_general", true ) );
-$cat_notice = ( $import_cat ) ? __( "Category import is enabled.", "woo_ds_shopkeeper" ) : __( "Category import is <u>not</u> enabled.", "woo_ds_shopkeeper" );
+$cat_notice = ( get_option( "_dsm_categories_general" ) ) ? __( "Category import is enabled.", "woo_ds_shopkeeper" ) : __( "Category import is <u>not</u> enabled.", "woo_ds_shopkeeper" );
 $url_config = admin_url( "admin.php?page=woo_ds_shopkeeper&tab=general" );
 $link       = "<a href='{$url_config}' >" . __( "click here", "woo_ds_shopkeeper" ) . "</a>";
 $compl      = __( "To change this setting,", "woo_ds_shopkeeper" );
