@@ -161,7 +161,7 @@ class DSM_Orders
             $order->add_meta_data( "_dsm_order_sent_{$order_id}_{$supplier_id}", true );
             $order->add_meta_data( "_dsm_order_id_{$supplier_id}", $data[ "order_id" ] );
 
-            \Dropshipping_Shopkeeper::log( "INFO - " . implode( " - ", $msg ) );
+            \Dropshipping_Shopkeeper::log( "info" , implode( " - ", $msg ) );
         }
 
         $order->save();
@@ -198,9 +198,9 @@ class DSM_Orders
 
         $order->add_order_note( implode( "\n", $msg ) );
 
-        \Dropshipping_Shopkeeper::log( "ERROR - " . implode( " - ", $msg ), true );
+        \Dropshipping_Shopkeeper::log( "error", implode( " - ", $msg ), true );
 
-        if ( $error ) \Dropshipping_Shopkeeper::log( "ERROR - {$error}", true );
+        if ( $error ) \Dropshipping_Shopkeeper::log( "critical", $error, true );
     }
 
 	/**
