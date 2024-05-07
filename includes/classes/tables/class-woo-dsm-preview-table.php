@@ -106,7 +106,7 @@ class DSM_Preview_table extends \WP_List_Table
         $this->_secret_s = get_user_meta( $this->supplier->ID, "_dsm_secret_s",   true );
         $this->_prefix   = get_user_meta( $this->supplier->ID, "_dsm_sku_prefix", true );
 
-        $this->_email    = get_option( "_dsm_email_general", true );
+        $this->_email    = get_option( "_dsm_email_general" );
 
         if ( empty( $this->_email ) || !is_email( $this->_email ) )
             $this->_email = get_bloginfo( "admin_email" );
@@ -249,11 +249,11 @@ class DSM_Preview_table extends \WP_List_Table
 
         if ( $per_page > 0 )
         {
-            $current_page          = $this->get_pagenum();
-            $total_items           = count( $this->products );
-            $total_pages           = ceil( $total_items / $per_page );
+            $current_page   = $this->get_pagenum();
+            $total_items    = count( $this->products );
+            $total_pages    = ceil( $total_items / $per_page );
 
-            $this->products        = array_chunk( $this->products, $per_page )[ $current_page - 1 ];
+            $this->products = array_chunk( $this->products, $per_page )[ $current_page - 1 ];
 
             if ( empty( $paged ) || !is_numeric( $paged ) || $paged<=0 ) $paged = 1;
 
@@ -263,11 +263,11 @@ class DSM_Preview_table extends \WP_List_Table
                 "per_page"    => $per_page,
             ] );
 
-            $this->items           = $this->products;
+            $this->items    = $this->products;
         }
         else
         {
-            $this->items           = [];
+            $this->items    = [];
         }
     }
 
@@ -292,16 +292,12 @@ class DSM_Preview_table extends \WP_List_Table
 
         if ( !in_array( $action, $actions ) ) return;
 
-        $products = array_filter( $this->products, function( $p ) { return in_array( $p->ID, $_POST[ "products" ] ); } );
-
-        foreach ( $products as &$product )
+        $products = array_filter( $this->products, function( $p )
         {
-            if ( get_option( "_dsm_categories_general", true ) )
-                foreach ( $product->categories as &$category )
-                    $category = DSM_Helper::find_category( $category[ "name" ], $category[ "slug" ] );
+            return in_array( $p->id, $_POST[ "products" ] );
+        } );
 
-            $product = ( array ) $product;
-        }
+        $products = json_decode( json_encode( $products ), true );
 
         $this->process_import_products( $products );
     }
@@ -333,7 +329,7 @@ class DSM_Preview_table extends \WP_List_Table
      */
     public function column_cb( $item )
     {
-        return sprintf( "<input type='checkbox' name='products[]' value='%s' />", $item->ID );
+        return sprintf( "<input type='checkbox' name='products[]' value='%s' />", $item->id );
     }
 
     /**
@@ -348,7 +344,7 @@ class DSM_Preview_table extends \WP_List_Table
         $src = "/wp-content/uploads/woocommerce-placeholder-150x150.png";
 
         if ( $item->images )
-            $src = $item->images[ 0 ][ "src" ];
+            $src = $item->images[ 0 ]->src;
 
         return "<img width='40' height='40' src='{$src}' class='attachment-40x40 size-40x40'
             decoding='async' loading='lazy' sizes='(max-width: 40px) 100vw, 40px' >";
@@ -443,7 +439,7 @@ class DSM_Preview_table extends \WP_List_Table
         $cats = "";
 
         foreach ( $item->categories as $cat )
-            $cats .= $cat[ "name" ] . ( $cat[ "name" ] != end( $item->categories )[ "name" ] ? ", " : "" );
+            $cats .= $cat->name . ( $cat->name != end( $item->categories )->name ? ", " : "" );
 
         return $cats;
     }
@@ -474,61 +470,41 @@ class DSM_Preview_table extends \WP_List_Table
 
         $url      = "{$this->_url}/wp-json/dsm/v1/products";
 
-        /**
-         * Get supplier products
-         */
+        // Get supplier products
         $response = wp_remote_get( $url, $this->_args );
 
         if ( is_wp_error( $response ) )
         {
-            $log  = "ERROR - Supplier ID {$this->supplier->ID} - api_query_error GET - " . $response->get_error_message();
-            $log .= " - " . json_encode( [ "url" => $url ] );
-            \Dropshipping_Shopkeeper::log( $log, true );
+            \Dropshipping_Shopkeeper::log(
+                "error",
+                "Supplier ID {$this->supplier->ID} - api_query_error GET - " .
+                $response->get_error_message() . " - " .
+                json_encode( [ "url" => $url ] ),
+                true
+            );
 
             return [];
         }
-        else
+
+        $data     = json_decode( $response[ "body" ] );
+
+        if ( $data->code == "dsm_rest_cannot_view" )
         {
-            $data = json_decode( $response[ "body" ] );
-
-            if ( $data->code == "dsm_rest_cannot_view" )
-            {
-                // call error / no post
-                return [];
-            }
-            else if ( $data->code == "dsm_rest_products_v1_invalid_email" )
-            {
-                // config error / account not created
-                return [];
-            }
-            else if ( $data->code == "dsm_rest_products_v1_invalid_secret" )
-            {
-                // config error / invalid access key
-                return [];
-            }
-        }
-
-        $products = [];
-
-        try
-        {
-            foreach ( $data->data as $product )
-            {
-                if ( empty( $product->sku ) ) continue;
-
-                /**
-                 * Translate products
-                 */
-                $products[] = ( object ) DSM_Helper::translate_product( $product, true );
-            }
-        }
-        catch ( \Exception $e )
-        {
-            $log = "ERROR - Supplier ID {$this->supplier->ID} - translate_product - " . $e->getMessage();
-            \Dropshipping_Shopkeeper::log( $log, true );
-
+            // call error / no post
             return [];
         }
+        else if ( $data->code == "dsm_rest_products_v1_invalid_email" )
+        {
+            // config error / account not created
+            return [];
+        }
+        else if ( $data->code == "dsm_rest_products_v1_invalid_secret" )
+        {
+            // config error / invalid access key
+            return [];
+        }
+
+        $products = $data->data;
 
         return $this->filter_products( $products );
     }
@@ -568,83 +544,48 @@ class DSM_Preview_table extends \WP_List_Table
             "user"     => $this->supplier->user_login,
         ];
 
-        /**
-         * Disable permissions check locally
-         */
-        add_filter( "woocommerce_rest_check_permissions", "__return_true" );
+		// Disable permissions check locally
+		add_filter( "woocommerce_rest_check_permissions", "__return_true" );
 
-        $request    = new \WP_REST_Request( "POST", "/wc/v3/products" );
-        $controller = new \WC_REST_Products_Controller;
-        $imported   = [];
+        $imported = [];
 
         foreach ( $products as $aux_product )
         {
-            $prd_id   = wc_get_product_id_by_sku( $this->_prefix . $aux_product[ "sku" ] );
+            if ( wc_get_product_id_by_sku( $this->_prefix . $aux_product[ "sku" ] ) ) continue;
 
-            if ( $prd_id ) continue;
+            $success    = DSM_Helper::create_product( $aux_product, $this->_prefix, $this->supplier->ID );
 
-            $request->set_body_params( $aux_product );
-            $response = $controller->create_item( $request );
-
-            if ( is_wp_error( $response ) )
+            if ( !$success )
             {
-                $log = "ERROR - Supplier ID {$this->supplier->ID} - error_create_product - " . $response->get_error_message();
-                \Dropshipping_Shopkeeper::log( $log, true );
-                \Dropshipping_Shopkeeper::log( print_r( $response, true ), true );
-
                 $errors[ $this->supplier->ID ][ "warnings" ]++;
                 continue;
             }
-
-            $product = wc_get_product( $response->data[ "id" ] );
-
-            $product->update_meta_data( "_dsm_supplier",                $this->supplier->ID     );
-            $product->update_meta_data( "_dsm_supplier_regular_price",  $product->regular_price );
-            $product->update_meta_data( "_dsm_supplier_sale_price",     $product->sale_price    );
-            $product->update_meta_data( "_dsm_supplier_sku",            $product->sku           );
-            $product->update_meta_data( "_dsm_supplier_status_regular", "even"                  );
-            $product->update_meta_data( "_dsm_supplier_status_sale",    "even"                  );
-
-            try
-            {
-                $product->set_sku( $this->_prefix . $product->sku );
-            }
-            catch ( \Exception $e )
-            {
-                $log = "ERROR - Supplier ID {$this->supplier->ID} - error_set_sku - " . $e->getMessage();
-                \Dropshipping_Shopkeeper::log( $log, true );
-
-                $product->delete( true );
-                $errors[ $this->supplier->ID ][ "warnings" ]++;
-                continue;
-            }
-
-            $product->save();
 
             $imported[] = $aux_product[ "sku" ];
         }
 
-        /**
-         * Inform supplier about imported products
-         */
-        if ( !empty( $imported ) ) $this->send_imported_products( $imported );
+        // Inform supplier about imported products
+        if ( !empty( $imported ) ) $this->prepare_to_send_imported_products( $imported );
 
-        $count      = count( $products ) - $errors[ $this->supplier->ID ][ "warnings" ];
-        $log        = "INFO - Supplier ID {$this->supplier->ID} - imported {$count} products";
-        \Dropshipping_Shopkeeper::log( $log );
+        $count   = count( $products ) - $errors[ $this->supplier->ID ][ "warnings" ];
+
+        \Dropshipping_Shopkeeper::log( "info", "Supplier ID {$this->supplier->ID} - imported {$count} products" );
+
+		// Remove the filter.
+		remove_filter( "woocommerce_rest_check_permissions", "__return_true" );
 
         $errors[ $this->supplier->ID ][ "count" ] = $count;
 
-        $warning    = max( array_column( $errors, "warnings" ) ) == 0;
-        $error      = max( array_column( $errors, "errors"   ) ) == 0;
+        $warning = max( array_column( $errors, "warnings" ) ) == 0;
+        $error   = max( array_column( $errors, "errors"   ) ) == 0;
 
         if ( $warning && $error )
-            return $this->redirect( "success", $errors );
+            return DSM_Helper::redirect( "success", $errors );
 
         else if ( !$warning )
-            return $this->redirect( "warning", $errors );
+            return DSM_Helper::redirect( "warning", $errors );
 
-        return $this->redirect( "error", $errors );
+        return DSM_Helper::redirect( "error", $errors );
     }
 
     /**
@@ -654,62 +595,10 @@ class DSM_Preview_table extends \WP_List_Table
      * @param   array   $skus
      * @return  void
      */
-    private function send_imported_products( $skus )
+    private function prepare_to_send_imported_products( $skus )
     {
-        $url            = "{$this->_url}/wp-json/dsm/v1/products/imported";
-        $args           = $this->_args;
+        $url = "{$this->_url}/wp-json/dsm/v1/products/imported";
 
-        $args[ "body"    ]                   = wp_json_encode( [ "skus" => $skus ] );
-        $args[ "headers" ][ "Content-Type" ] = "application/json";
-
-        $response       = wp_remote_post( $url, $args );
-
-        if ( is_wp_error( $response ) )
-        {
-            \Dropshipping_Shopkeeper::log( json_encode( [
-                "ERROR",
-                "Supplier ID {$this->supplier->ID}",
-                "api_query_error POST",
-                json_encode( [ "url" => $url ] ),
-                $response->get_error_message(),
-            ] ), true );
-
-            return;
-        }
-
-        $status         = wp_remote_retrieve_response_code( $response );
-        $data           = json_decode( $response[ "body" ], true );
-
-        if ( $status != 200 )
-        {
-            \Dropshipping_Shopkeeper::log( json_encode( [
-                "ERROR",
-                "Supplier ID {$this->supplier->ID}",
-                "api_query_error POST",
-                json_encode( [ "url" => $url ] ),
-                json_encode( $data ),
-            ] ), true );
-
-            return;
-        }
-
-        \Dropshipping_Shopkeeper::log( json_encode( $data ) );
-    }
-
-    /**
-     * Response for process
-     *
-     * @since   1.0.0
-     * @param   string  $type
-     * @param   array   $data
-     * @return  void
-     */
-    private function redirect( $type, $data )
-    {
-        $data = http_build_query( [ "data" => $data ] );
-
-        $url  = admin_url( "admin.php?page=woo_ds_shopkeeper&tab=suppliers&{$type}_message=DRPWE&{$data}" );
-        wp_redirect( $url );
-        return;
+        DSM_Helper::send_imported_products( $this->supplier->ID, $skus, $this->_args, $url );
     }
 }
