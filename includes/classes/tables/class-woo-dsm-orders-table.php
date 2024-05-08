@@ -28,7 +28,7 @@ class DSM_Orders_table extends \WP_List_Table
     protected $users;
 
     /**
-     * Undocumented function
+     * Construct.
      *
      * @since   1.0.0
      * @return  void
@@ -47,7 +47,7 @@ class DSM_Orders_table extends \WP_List_Table
      * @since   1.0.0
      * @return  void
      */
-    private function load_users()
+    private function load_users() : void
     {
 		$this->users = get_users( [
 			"role"  => "supplier",
@@ -61,7 +61,7 @@ class DSM_Orders_table extends \WP_List_Table
      * @since   1.0.0
      * @return  void
      */
-    private function load_orders()
+    private function load_orders() : void
     {
         $this->orders = wc_get_orders( [
             "limit" => -1,
@@ -112,7 +112,7 @@ class DSM_Orders_table extends \WP_List_Table
      * @since   1.0.0
      * @return  array   $columns    The array of columns to use with the table
      */
-    public function get_columns()
+    public function get_columns() : array
     {
         return $columns = [
             "cb"        => "",
@@ -130,7 +130,7 @@ class DSM_Orders_table extends \WP_List_Table
      * @since   1.0.0
      * @return  array   $sortable     The array of columns that can be sorted by the user
      */
-    public function get_sortable_columns()
+    public function get_sortable_columns() : array
     {
         return $sortable = [
             "order_id"   => [ "order_id",   false ],
@@ -148,7 +148,7 @@ class DSM_Orders_table extends \WP_List_Table
      * @param   object $b
      * @return  int
      */
-    public function usort_reorder( $a, $b )
+    public function usort_reorder( $a, $b ) : int
     {
         $order   = ( !empty( $_GET[ "order"   ] ) ) ? $_GET[ "order"   ] : "desc";
         $orderby = ( !empty( $_GET[ "orderby" ] ) ) ? $_GET[ "orderby" ] : "order_id";
@@ -217,7 +217,7 @@ class DSM_Orders_table extends \WP_List_Table
      * @since   1.0.0
      * @return  array
      */
-    public function get_bulk_actions()
+    public function get_bulk_actions() : array
     {
         $actions = [
             "upd_shipped" =>  __( "Set status shipped", "woo_ds_supplier" )
@@ -232,7 +232,7 @@ class DSM_Orders_table extends \WP_List_Table
      * @since   1.0.0
      * @return  void
      */
-    public function no_items()
+    public function no_items() : void
     {
         _e( "No products found.", "woo_ds_supplier" );
     }
@@ -243,7 +243,7 @@ class DSM_Orders_table extends \WP_List_Table
      * @since   1.0.0
      * @return  void
      */
-    public function prepare_items()
+    public function prepare_items() : void
     {
         $this->process_bulk_action();
 
@@ -281,7 +281,7 @@ class DSM_Orders_table extends \WP_List_Table
      * @since   1.0.0
      * @return  void
      */
-    public function process_bulk_action()
+    public function process_bulk_action() : void
     {
         if ( isset( $_POST[ "_wpnonce" ] ) && !empty( $_POST[ "_wpnonce" ] ) )
         {
@@ -312,7 +312,7 @@ class DSM_Orders_table extends \WP_List_Table
      * @param   string          $column_name
      * @return  mixed
      */
-    public function column_default( $item, $column_name )
+    public function column_default( $item, $column_name ) : mixed
     {
         switch( $column_name )
         {
@@ -329,7 +329,7 @@ class DSM_Orders_table extends \WP_List_Table
      * @param   array|object $item
      * @return  string
      */
-    public function column_cb( $item )
+    public function column_cb( $item ) : string
     {
         return sprintf( "<input type='checkbox' name='orders[]' value='%s' />", $item->ID );
     }
@@ -341,7 +341,7 @@ class DSM_Orders_table extends \WP_List_Table
      * @param   array|object $item
      * @return  string
      */
-    public function column_order_id( $item )
+    public function column_order_id( $item ) : string
     {
         $customer      = new \WC_Customer( $item->get_customer_id() );
         $customer_name = "{$customer->get_first_name()} {$customer->get_last_name()}";
@@ -371,7 +371,7 @@ class DSM_Orders_table extends \WP_List_Table
      * @param   array|object $item
      * @return  string
      */
-    public function column_suppliers( $item )
+    public function column_suppliers( $item ) : string
     {
         return $item->suppliers;
     }
@@ -383,7 +383,7 @@ class DSM_Orders_table extends \WP_List_Table
      * @param   array|object $item
      * @return  string
      */
-    public function column_date( $item )
+    public function column_date( $item ) : string
     {
         return wc_format_datetime( $item->get_date_created(), "Y/m/d H:i" );
     }
@@ -395,7 +395,7 @@ class DSM_Orders_table extends \WP_List_Table
      * @param   array|object $item
      * @return  string
      */
-    public function column_status( $item )
+    public function column_status( $item ) : string
     {
 		if ( in_array( $item->get_status(), array( "trash", "draft", "auto-draft" ), true ) )
         {
@@ -418,7 +418,7 @@ class DSM_Orders_table extends \WP_List_Table
      * @param   array|object $item
      * @return  string
      */
-    public function column_total( $item )
+    public function column_total( $item ) : string
     {
         return wc_price( $item->get_total() );
     }
@@ -429,7 +429,7 @@ class DSM_Orders_table extends \WP_List_Table
      * @since   1.0.0
      * @return  void
      */
-    public function extra_tablenav( $which )
+    public function extra_tablenav( $which ) : void
     {
         // if ( $which == "top"    )
         // if ( $which == "bottom" )
@@ -443,7 +443,7 @@ class DSM_Orders_table extends \WP_List_Table
      * @since   1.0.0
      * @return  void
      */
-    public function filter_orders()
+    public function filter_orders() : void
     {
         if ( isset( $_GET[ "shopkeeper" ] ) )
         {
@@ -463,7 +463,7 @@ class DSM_Orders_table extends \WP_List_Table
      * @since   1.0.0
      * @return  void
      */
-    public function process_b_a_upd_status( $orders )
+    public function process_b_a_upd_status( $orders ) : void
     {
         if ( !empty( $orders ) )
         {

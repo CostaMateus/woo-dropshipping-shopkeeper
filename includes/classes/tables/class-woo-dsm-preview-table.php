@@ -99,7 +99,7 @@ class DSM_Preview_table extends \WP_List_Table
      * @since   1.0.0
      * @return  void
      */
-    private function set_props()
+    private function set_props() : void
     {
         $this->_url      = get_user_meta( $this->supplier->ID, "_dsm_url",        true );
         $this->_secret   = get_user_meta( $this->supplier->ID, "_dsm_secret",     true );
@@ -122,7 +122,7 @@ class DSM_Preview_table extends \WP_List_Table
         ];
     }
 
-    public function get_user_login()
+    public function get_user_login() : string
     {
         return $this->supplier->user_login;
     }
@@ -133,7 +133,7 @@ class DSM_Preview_table extends \WP_List_Table
      * @since   1.0.0
      * @return  array   $columns    The array of columns to use with the table
      */
-    public function get_columns()
+    public function get_columns() : array
     {
         return $columns = [
             "cb"         => "<input type='checkbox' />",
@@ -152,7 +152,7 @@ class DSM_Preview_table extends \WP_List_Table
      * @since   1.0.0
      * @return  array   $sortable     The array of columns that can be sorted by the user
      */
-    public function get_sortable_columns()
+    public function get_sortable_columns() : array
     {
         return $sortable = [
             "name"     => [ "name",     false ],
@@ -169,7 +169,7 @@ class DSM_Preview_table extends \WP_List_Table
      * @param   object $b
      * @return  int
      */
-    public function usort_reorder( $a, $b )
+    public function usort_reorder( $a, $b ) : int
     {
         $order   = ( !empty( $_GET[ "order"   ] ) ) ? $_GET[ "order"   ] : "desc";
         $orderby = ( !empty( $_GET[ "orderby" ] ) ) ? $_GET[ "orderby" ] : "date";
@@ -211,7 +211,7 @@ class DSM_Preview_table extends \WP_List_Table
      * @since   1.0.0
      * @return  array|void
      */
-    public function get_bulk_actions()
+    public function get_bulk_actions() : array
     {
         return $actions = [ "import" => __( "Import products", "woo_ds_shopkeeper" ) ];
     }
@@ -222,7 +222,7 @@ class DSM_Preview_table extends \WP_List_Table
      * @since   1.0.0
      * @return  void
      */
-    public function no_items()
+    public function no_items() : void
     {
         _e( "No products found.", "woo_ds_shopkeeper" );
     }
@@ -233,7 +233,7 @@ class DSM_Preview_table extends \WP_List_Table
      * @since   1.0.0
      * @return  void
      */
-    public function prepare_items()
+    public function prepare_items() : void
     {
         $this->process_bulk_action();
 
@@ -277,7 +277,7 @@ class DSM_Preview_table extends \WP_List_Table
      * @since   1.0.0
      * @return  void
      */
-    public function process_bulk_action()
+    public function process_bulk_action() : void
     {
         if ( isset( $_POST[ "_wpnonce" ] ) && !empty( $_POST[ "_wpnonce" ] ) )
         {
@@ -310,7 +310,7 @@ class DSM_Preview_table extends \WP_List_Table
      * @param   string          $column_name
      * @return  mixed
      */
-    public function column_default( $item, $column_name )
+    public function column_default( $item, $column_name ) : mixed
     {
         switch( $column_name )
         {
@@ -324,10 +324,10 @@ class DSM_Preview_table extends \WP_List_Table
      * Checkbox column
      *
      * @since   1.0.0
-     * @param   array|object $item
+     * @param   array|object    $item
      * @return  string
      */
-    public function column_cb( $item )
+    public function column_cb( $item ) : string
     {
         return sprintf( "<input type='checkbox' name='products[]' value='%s' />", $item->id );
     }
@@ -336,10 +336,10 @@ class DSM_Preview_table extends \WP_List_Table
      * Thumbnail column
      *
      * @since   1.0.0
-     * @param   array|object $item
+     * @param   array|object    $item
      * @return  string
      */
-    public function column_thumbnail( $item )
+    public function column_thumbnail( $item ) : string
     {
         $src = "/wp-content/uploads/woocommerce-placeholder-150x150.png";
 
@@ -354,10 +354,10 @@ class DSM_Preview_table extends \WP_List_Table
      * Name column
      *
      * @since   1.0.0
-     * @param   array|object $item
+     * @param   array|object    $item
      * @return  string
      */
-    public function column_name( $item )
+    public function column_name( $item ) : string
     {
         return "<strong>{$item->name}</strong>";
     }
@@ -366,10 +366,10 @@ class DSM_Preview_table extends \WP_List_Table
      * SKU column
      *
      * @since   1.0.0
-     * @param   array|object $item
+     * @param   array|object    $item
      * @return  string
      */
-    public function column_sku( $item )
+    public function column_sku( $item ) : string
     {
         return $item->sku;
     }
@@ -378,10 +378,10 @@ class DSM_Preview_table extends \WP_List_Table
      * Stock column
      *
      * @since   1.0.0
-     * @param   array|object $item
+     * @param   array|object    $item
      * @return  string
      */
-    public function column_stock( $item )
+    public function column_stock( $item ) : string
     {
         $stock = "";
         $class = "";
@@ -416,10 +416,10 @@ class DSM_Preview_table extends \WP_List_Table
      * Price column
      *
      * @since   1.0.0
-     * @param   array|object $item
+     * @param   array|object    $item
      * @return  string
      */
-    public function column_price( $item )
+    public function column_price( $item ) : string
     {
         $r = wc_price( $item->regular_price );
         $s = wc_price( $item->sale_price    );
@@ -431,10 +431,10 @@ class DSM_Preview_table extends \WP_List_Table
      * Categories column
      *
      * @since   1.0.0
-     * @param   array|object $item
+     * @param   array|object    $item
      * @return  string
      */
-    public function column_categories( $item )
+    public function column_categories( $item ) : string
     {
         $cats = "";
 
@@ -449,7 +449,7 @@ class DSM_Preview_table extends \WP_List_Table
      * @since   1.0.0
      * @return  void
      */
-    public function extra_tablenav( $which )
+    public function extra_tablenav( $which ) : void
     {
         // if ( $which == "top" )
         //     echo"Hello, I'm before the table";
@@ -464,7 +464,7 @@ class DSM_Preview_table extends \WP_List_Table
      * @since   1.0.0
      * @return  array
      */
-    public function get_preview_products()
+    public function get_preview_products() : array
     {
         if ( !$this->_url || !$this->_secret || !$this->_secret_s ) return [];
 
@@ -510,12 +510,15 @@ class DSM_Preview_table extends \WP_List_Table
     }
 
     /**
-     * Filters the products that have already been imported
+     * Filters the products that have already been imported.
+     *
+     * This function filters out the products that have already been imported from the given list of products.
      *
      * @since   1.0.0
-     * @return  array
+     * @param   array   $products   An array of product data to be filtered
+     * @return  array               An array of product data that have not been imported yet
      */
-    public function filter_products( $products )
+    public function filter_products( $products ) : array
     {
         foreach ( $products as $key => $product )
         {
@@ -528,13 +531,15 @@ class DSM_Preview_table extends \WP_List_Table
     }
 
     /**
-     * Import products
+     * Import products.
+     *
+     * This function processes the import of products from the supplier.
      *
      * @since   1.0.0
-     * @param   array   $products
+     * @param   array   $products   An array of product data to be imported
      * @return  void
      */
-    private function process_import_products( $products )
+    private function process_import_products( $products ) : void
     {
         $errors[ $this->supplier->ID ] = [
             "errors"   => 0,
@@ -580,22 +585,30 @@ class DSM_Preview_table extends \WP_List_Table
         $error   = max( array_column( $errors, "errors"   ) ) == 0;
 
         if ( $warning && $error )
-            return DSM_Helper::redirect( "success", $errors );
-
+        {
+            DSM_Helper::redirect( "success", $errors );
+            return;
+        }
         else if ( !$warning )
-            return DSM_Helper::redirect( "warning", $errors );
+        {
+            DSM_Helper::redirect( "warning", $errors );
+            return;
+        }
 
-        return DSM_Helper::redirect( "error", $errors );
+        DSM_Helper::redirect( "error", $errors );
+        return;
     }
 
     /**
-     * Inform supplier about imported products
+     * Inform supplier about imported products.
+     *
+     * This function prepares to send a notification to the supplier about the products that have been imported.
      *
      * @since   1.0.0
-     * @param   array   $skus
+     * @param   array   $skus   An array of SKUs (Stock Keeping Units) for the imported products
      * @return  void
      */
-    private function prepare_to_send_imported_products( $skus )
+    private function prepare_to_send_imported_products( $skus ) : void
     {
         $url = "{$this->_url}/wp-json/dsm/v1/products/imported";
 
