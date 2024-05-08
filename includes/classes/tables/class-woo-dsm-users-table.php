@@ -103,8 +103,8 @@ class DSM_Users_table extends \WP_List_Table
 		] );
 
         // Retrieve usermeta
-        array_map( function( &$user ) {
-            $user->usermeta = array_map( function ($data ) {
+        array_map( function( $user ) {
+            $user->usermeta = array_map( function ( $data ) {
                 return reset( $data );
             }, get_user_meta( $user->ID ) );
             return $user;
