@@ -167,9 +167,9 @@ class DSM_Preview_table extends \WP_List_Table
      * @since   1.0.0
      * @param   object $a
      * @param   object $b
-     * @return  int
+     * @return  int|bool|null
      */
-    public function usort_reorder( $a, $b ) : int
+    public function usort_reorder( $a, $b )
     {
         $order   = ( !empty( $_GET[ "order"   ] ) ) ? $_GET[ "order"   ] : "desc";
         $orderby = "date";
