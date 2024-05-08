@@ -70,6 +70,14 @@ class DSM_Preview_table extends \WP_List_Table
     protected $_email;
 
     /**
+     * Supplier request args
+     *
+     * @since   1.0.0
+     * @var     array
+     */
+    protected $_req_args;
+
+    /**
      * Constructor
      *
      * @since   1.0.0

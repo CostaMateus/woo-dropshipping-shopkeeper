@@ -153,7 +153,7 @@ class DSM_Helper
                     "value" => $variation[ "regular_price" ],
                 ], [
                     "key"   => "_dsm_supplier_sale_price",
-                    "value" => $variation[ "sale_price"    ],
+                    "value" => $variation[ "sale_price"    ] ?? "",
                 ], [
                     "key"   => "_dsm_supplier_sku",
                     "value" => $variation[ "sku"           ],
