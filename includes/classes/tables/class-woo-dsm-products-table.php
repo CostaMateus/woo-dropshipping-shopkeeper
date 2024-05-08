@@ -28,7 +28,7 @@ class DSM_Products_table extends \WP_List_Table
     protected $users;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @since   1.0.0
      * @return  void
@@ -42,12 +42,14 @@ class DSM_Products_table extends \WP_List_Table
     }
 
     /**
-     * Load the products data
+     * Load the products data.
+     *
+     * This method retrieves the product data from the database and associates each product with its corresponding supplier.
      *
      * @since   1.0.0
      * @return  void
      */
-    private function load_products()
+    private function load_products() : void
     {
         $this->products = wc_get_products( [
             "limit"        => -1,
@@ -69,12 +71,14 @@ class DSM_Products_table extends \WP_List_Table
     }
 
     /**
-     * Load the users data
+     * Load the users data.
+     *
+     * This method retrieves the user data (suppliers) from the database.
      *
      * @since   1.0.0
      * @return  void
      */
-    private function load_users()
+    private function load_users() : void
     {
 		$this->users = get_users( [
 			"role"  => "supplier",
@@ -83,12 +87,14 @@ class DSM_Products_table extends \WP_List_Table
     }
 
     /**
-     * Define the columns that are going to be used in the table
+     * Define the columns that are going to be used in the table.
+     *
+     * This method defines the columns that will be displayed in the table.
      *
      * @since   1.0.0
-     * @return  array   $columns    The array of columns to use with the table
+     * @return  array   $columns    The array of columns to use with the table.
      */
-    public function get_columns()
+    public function get_columns() : array
     {
         $columns = [
             // "cb"         => "<input type='checkbox' name='users[]' />",
@@ -107,12 +113,14 @@ class DSM_Products_table extends \WP_List_Table
     }
 
     /**
-     * Decide which columns to activate the sorting functionality on
+     * Decide which columns to activate the sorting functionality on.
+     *
+     * This method defines the columns that can be sorted by the user in the table.
      *
      * @since   1.0.0
-     * @return  array   $sortable     The array of columns that can be sorted by the user
+     * @return  array   $sortable     The array of columns that can be sorted by the user.
      */
-    public function get_sortable_columns()
+    public function get_sortable_columns() : array
     {
         $sortable = [
             "name"     => [ "name",     false ],
@@ -129,12 +137,14 @@ class DSM_Products_table extends \WP_List_Table
     /**
      * Sort users by name, supplier, sku, price or date.
      *
+     * This method is a custom sorting function used to sort the users (products) based on the selected column and order.
+     *
      * @since   1.0.0
      * @param   object $a
      * @param   object $b
      * @return  int
      */
-    public function usort_reorder( $a, $b )
+    public function usort_reorder( $a, $b ) : int
     {
         $order   = ( !empty( $_GET[ "order"   ] ) ) ? $_GET[ "order"   ] : "desc";
         $orderby = ( !empty( $_GET[ "orderby" ] ) ) ? $_GET[ "orderby" ] : "date";
@@ -197,34 +207,43 @@ class DSM_Products_table extends \WP_List_Table
     }
 
     /**
-     * Bulk actions options
+     * Bulk actions options.
+     *
+     * This method is intended to define the bulk actions that can be performed on the selected items in the table.
+     * However, it is currently empty and does not provide any bulk action options.
      *
      * @since   1.0.0
-     * @return  array|void
+     * @return  void
      */
-    public function get_bulk_actions()
+    public function get_bulk_actions() : void
     {
         //
     }
 
     /**
-     * No items to show
+     * No items to show.
+     *
+     * This function is called when there are no products to display in the table.
+     * It simply outputs the message "No products found." using the WordPress translation function.
      *
      * @since   1.0.0
      * @return  void
      */
-    public function no_items()
+    public function no_items() : void
     {
         _e( "No products found.", "woo_ds_shopkeeper" );
     }
 
     /**
-     * Prepare the table with different parameters, pagination, columns and table elements
+     * Prepare the table with different parameters, pagination, columns and table elements.
+     *
+     * This function prepares the table by setting up various parameters such as columns, sorting,
+     * filtering, pagination, and chunking the data into pages.
      *
      * @since   1.0.0
      * @return  void
      */
-    public function prepare_items()
+    public function prepare_items() : void
     {
         $hidden                = [];
         $columns               = $this->get_columns();
@@ -255,44 +274,54 @@ class DSM_Products_table extends \WP_List_Table
     }
 
     /**
-     * Unmapped columns
+     * Unmapped columns.
+     *
+     * This function handles the display of unmapped columns in the table.
+     * If the column is not recognized, it will print the entire item array for troubleshooting purposes.
      *
      * @since   1.0.0
      * @param   array|object    $item
      * @param   string          $column_name
      * @return  mixed
      */
-    public function column_default( $item, $column_name )
+    public function column_default( $item, $column_name ) : mixed
     {
         switch( $column_name )
         {
             default:
-                return print_r( $item, true ) ; //Show the whole array for troubleshooting purposes
+                //Show the whole array for troubleshooting purposes
+                return print_r( $item, true ) ;
             break;
         }
     }
 
     /**
-     * Checkbox column
+     * Checkbox column.
+     *
+     * This function is responsible for rendering the checkbox column in the table.
+     * It is currently commented out, but it would typically return an HTML checkbox input
+     * with the product ID as the value, allowing for bulk actions on selected products.
      *
      * @since   1.0.0
-     * @param   array|object $item
-     * @return  string
+     * @param   array|object $item   The product item being displayed in the table row.
+     * @return  string               The HTML markup for the checkbox column.
      */
-    public function column_cb( $item )
+    public function column_cb( $item ) : void
     {
         // if ( $this->preview )
         //     return sprintf( "<input type='checkbox' name='products[]' value='%s' />", $item->ID );
     }
 
     /**
-     * Thumbnail column
+     * Thumbnail column.
+     *
+     * This function renders the thumbnail column in the table.
      *
      * @since   1.0.0
-     * @param   array|object $item
-     * @return  string
+     * @param   array|object $item   The product item being displayed in the table row.
+     * @return  string               The HTML markup for the thumbnail column.
      */
-    public function column_thumbnail( $item )
+    public function column_thumbnail( $item ) : string
     {
         if ( $item->get_image_id() )
             return wp_get_attachment_image( $item->get_image_id(), [ 40, 40 ], true );
@@ -302,13 +331,15 @@ class DSM_Products_table extends \WP_List_Table
     }
 
     /**
-     * Name column
+     * Name column.
+     *
+     * This function renders the name column in the table.
      *
      * @since   1.0.0
-     * @param   array|object $item
-     * @return  string
+     * @param   array|object    $item   The product item being displayed in the table row.
+     * @return  string                  The HTML markup for the name column.
      */
-    public function column_name( $item )
+    public function column_name( $item ) : string
     {
         $status          = $item->get_status();
         $class           = "";
@@ -352,13 +383,17 @@ class DSM_Products_table extends \WP_List_Table
     }
 
     /**
-     * Supplier column
+     * Supplier column.
+     *
+     * This function renders the supplier column in the table.
+     * It displays the supplier name and an "Edit" link if the user has the "edit_posts" capability.
+     * The supplier ID is also displayed as part of the row actions.
      *
      * @since   1.0.0
-     * @param   array|object $item
-     * @return  string
+     * @param   array|object    $item   The product item being displayed in the table row.
+     * @return  string                  The HTML markup for the supplier column.
      */
-    public function column_supplier( $item )
+    public function column_supplier( $item ) : string
     {
         $id              = $item->get_meta( "_dsm_supplier" );
         $actions         = [];
@@ -383,25 +418,30 @@ class DSM_Products_table extends \WP_List_Table
     }
 
     /**
-     * SKU column
+     * SKU column.
+     *
+     * This function renders the SKU (Stock Keeping Unit) column in the table.
+     * It simply displays the product's SKU.
      *
      * @since   1.0.0
-     * @param   array|object $item
-     * @return  string
+     * @param   array|object    item    The product item being displayed in the table row.
+     * @return  string                  The product's SKU.
      */
-    public function column_sku( $item )
+    public function column_sku( $item ) : string
     {
         return $item->get_sku();
     }
 
     /**
-     * Stock column
+     * Stock column.
+     *
+     * This function renders the stock column in the table.
      *
      * @since   1.0.0
-     * @param   array|object $item
-     * @return  string
+     * @param   array|object    $item   The product item being displayed in the table row.
+     * @return  string                  The HTML markup for the stock column.
      */
-    public function column_stock( $item )
+    public function column_stock( $item ) : string
     {
         $stock = "";
         $class = "";
@@ -436,13 +476,15 @@ class DSM_Products_table extends \WP_List_Table
     }
 
     /**
-     * Price column
+     * Price column.
+     *
+     * This function renders the price column in the table.
      *
      * @since   1.0.0
-     * @param   array|object $item
-     * @return  string
+     * @param   array|object    $item   The product item being displayed in the table row.
+     * @return  string                  The HTML markup for the price column.
      */
-    public function column_price( $item )
+    public function column_price( $item ) : string
     {
         $r = wc_price( $item->get_regular_price() );
         $s = wc_price( $item->get_sale_price()    );
@@ -451,13 +493,15 @@ class DSM_Products_table extends \WP_List_Table
     }
 
     /**
-     * Supplier Price column
+     * Supplier Price column.
+     *
+     * This function renders the supplier price column in the table.
      *
      * @since   1.0.0
-     * @param   array|object $item
-     * @return  string
+     * @param   array|object    $item   The product item being displayed in the table row.
+     * @return  string                  The HTML markup for the supplier price column.
      */
-    public function column_s_price( $item )
+    public function column_s_price( $item ) : string
     {
         $class       = "";
         $lastUpdate  = $item->get_meta( "_dsm_supplier_price_upd"      );
@@ -497,25 +541,30 @@ class DSM_Products_table extends \WP_List_Table
     }
 
     /**
-     * Categories column
+     * Categories column.
+     *
+     * This function renders the categories column in the table.
+     * It displays the product categories associated with the product, separated by commas.
      *
      * @since   1.0.0
-     * @param   array|object $item
-     * @return  string
+     * @param   array|object    $item   The product item being displayed in the table row.
+     * @return  string                  The product categories.
      */
-    public function column_categories( $item )
+    public function column_categories( $item ) : string
     {
         return $item->get_categories( ", ", " " . _n( " ", " ", sizeof( get_the_terms( $item->get_id(), "product_cat" ) ), "woocommerce" ) . " ", " " );
     }
 
     /**
-     * Date column
+     * Date column.
+     *
+     * This function renders the date column in the table.
      *
      * @since   1.0.0
-     * @param   array|object $item
-     * @return  string
+     * @param   array|object    $item   The product item being displayed in the table row.
+     * @return  string                  The formatted date and time of the last modification.
      */
-    public function column_date( $item )
+    public function column_date( $item ) : string
     {
         $date = $item->get_date_modified();
         $date = wc_format_datetime( $date, "Y/m/d H:i:s" );
@@ -524,11 +573,14 @@ class DSM_Products_table extends \WP_List_Table
     }
 
     /**
+     * Extra table navigation.
+     *
+     * This function is a placeholder for adding extra content before or after the table.
      *
      * @since   1.0.0
      * @return  void
      */
-    public function extra_tablenav( $which )
+    public function extra_tablenav( $which ) : void
     {
         // if ( $which == "top" )
         //     echo"Hello, I'm before the table";
@@ -538,7 +590,9 @@ class DSM_Products_table extends \WP_List_Table
     }
 
     /**
-     * Filter products
+     * Filter products.
+     *
+     * This function filters the products based on the "supplier" query parameter.
      *
      * @since   1.0.0
      * @return  void

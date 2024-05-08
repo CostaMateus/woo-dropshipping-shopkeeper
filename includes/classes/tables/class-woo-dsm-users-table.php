@@ -14,7 +14,7 @@ use Dropshipping_Shopkeeper\Classes\Helpers\DSM_Helper;
 class DSM_Users_table extends \WP_List_Table
 {
     /**
-     * Products data
+     * Products data.
      *
      * @since   1.0.0
      * @var     array|stdClass
@@ -22,7 +22,7 @@ class DSM_Users_table extends \WP_List_Table
     protected $products;
 
     /**
-     * Orders data
+     * Orders data.
      *
      * @since   1.0.0
      * @var     array|stdClass
@@ -30,7 +30,7 @@ class DSM_Users_table extends \WP_List_Table
     protected $orders;
 
     /**
-     * Users data
+     * Users data.
      *
      * @since   1.0.0
      * @var     array|stdClass
@@ -38,7 +38,7 @@ class DSM_Users_table extends \WP_List_Table
     protected $users;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @since   1.0.0
      * @return  void
@@ -53,12 +53,14 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
-     * Load the products data
+     * Load the products data.
+     *
+     * This function loads all the products that have the "_dsm_supplier" meta key set.
      *
      * @since   1.0.0
      * @return  void
      */
-    private function load_products()
+    private function load_products() : void
     {
         $this->products = wc_get_products( [
             "limit"        => -1,
@@ -68,12 +70,14 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
-     * Load the orders data
+     * Load the orders data.
+     *
+     * This function loads all the orders that have the "_has_dsm_order" meta key set.
      *
      * @since   1.0.0
      * @return  void
      */
-    private function load_orders()
+    private function load_orders() : void
     {
         $this->orders = wc_get_orders( [
             "limit"        => -1,
@@ -85,16 +89,20 @@ class DSM_Users_table extends \WP_List_Table
     /**
      * Load the users data
      *
+     * This function loads all the users with the "supplier" role and performs additional operations.
+     *
      * @since   1.0.0
      * @return  void
      */
-    private function load_users()
+    private function load_users() : void
     {
+        // Retrieve users
 		$this->users = get_users( [
 			"role"  => "supplier",
 			"order" => "ASC"
 		] );
 
+        // Retrieve usermeta
         array_map( function( &$user ) {
             $user->usermeta = array_map( function ($data ) {
                 return reset( $data );
@@ -102,6 +110,7 @@ class DSM_Users_table extends \WP_List_Table
             return $user;
         }, $this->users );
 
+        // Loops through each user and calculates the number of products and orders associated with that user.
         foreach ( $this->users as &$user )
         {
             $product_count = 0;
@@ -136,12 +145,15 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
-     * Define the columns that are going to be used in the table
+     * Define the columns that are going to be used in the table.
+     *
+     * This function defines the columns that will be displayed in the table.
+     * It returns an associative array where the keys represent the column IDs, and the values represent the column titles.
      *
      * @since   1.0.0
-     * @return  array   $columns    The array of columns to use with the table
+     * @return  array   $columns    The array of columns to use with the table.
      */
-    public function get_columns()
+    public function get_columns() : array
     {
         return $columns = [
             "cb"       => "",
@@ -156,12 +168,16 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
-     * Decide which columns to activate the sorting functionality on
+     * Decide which columns to activate the sorting functionality on.
+     *
+     * This function defines the columns that can be sorted by the user.
+     * It returns an associative array where the keys represent the column IDs,
+     * and the values represent arrays containing the sortable field and a boolean indicating whether the sort should be numeric.
      *
      * @since   1.0.0
-     * @return  array   $sortable     The array of columns that can be sorted by the user
+     * @return  array   $sortable     The array of columns that can be sorted by the user.
      */
-    public function get_sortable_columns()
+    public function get_sortable_columns() : array
     {
         return $sortable = [
             "username" => [ "username", false ],
@@ -174,12 +190,15 @@ class DSM_Users_table extends \WP_List_Table
     /**
      * Sort users by username, email or quantity of products.
      *
+     * This function is used to sort the users based on the selected column and order.
+     * It takes two user objects ($a and $b) as parameters and returns an integer value indicating the sort order.
+     *
      * @since   1.0.0
-     * @param   object $a
-     * @param   object $b
+     * @param   object  $a
+     * @param   object  $b
      * @return  int
      */
-    public function usort_reorder( $a, $b )
+    public function usort_reorder( $a, $b ) : int
     {
         $orderby = "username";
 
@@ -199,10 +218,13 @@ class DSM_Users_table extends \WP_List_Table
     /**
      * Get bulk actions
      *
+     * This function retrieves the available bulk actions for the users.
+     * It returns an associative array where the keys represent the action IDs, and the values represent the action labels.
+     *
      * @since   1.0.0
-     * @return  array
+     * @return  array   $actions    The array of available bulk actions.
      */
-    public function get_bulk_actions()
+    public function get_bulk_actions() : array
     {
         $actions = [
             "sync"         => __( "Sync stock",       "woo_ds_shopkeeper" ),
@@ -218,21 +240,25 @@ class DSM_Users_table extends \WP_List_Table
     /**
      * No items to show
      *
+     * This function displays a message when there are no users found.
+     *
      * @since   1.0.0
      * @return  void
      */
-    public function no_items()
+    public function no_items() : void
     {
         _e( "No users found.", "woo_ds_shopkeeper" );
     }
 
     /**
-     * Prepare the table with different parameters, pagination, columns and table elements
+     * Prepare the table with different parameters, pagination, columns and table elements.
+     *
+     * This function prepares the table by setting up various parameters, pagination, columns, and table elements.
      *
      * @since   1.0.0
      * @return  void
      */
-    public function prepare_items()
+    public function prepare_items() : void
     {
         $this->process_bulk_action();
 
@@ -270,12 +296,14 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
-     * Process the bulk actions
+     * Process the bulk actions.
+     *
+     * This function processes the bulk actions performed by the user.
      *
      * @since   1.0.0
      * @return  void
      */
-    public function process_bulk_action()
+    public function process_bulk_action() : void
     {
         if ( isset( $_POST[ "_wpnonce" ] ) && !empty( $_POST[ "_wpnonce" ] ) )
         {
@@ -312,31 +340,35 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
-     * Unmapped columns
+     * Unmapped columns.
+     *
+     * This function handles the rendering of columns that are not explicitly mapped to a specific method.
      *
      * @since   1.0.0
-     * @param   array|object    $item
-     * @param   string          $column_name
-     * @return  mixed
+     * @param   array|object    $item           The item (row) being rendered.
+     * @param   string          $column_name    The name of the column being rendered.
+     * @return  mixed                           The rendered output for the column.
      */
-    public function column_default( $item, $column_name )
+    public function column_default( $item, $column_name ) : mixed
     {
         switch( $column_name )
         {
             default:
-                return print_r( $item, true ) ; //Show the whole array for troubleshooting purposes
+                return print_r( $item, true ) ; //Show the whole array for troubleshooting purposes.
             break;
         }
     }
 
     /**
-     * Checkbox column
+     * Checkbox column.
+     *
+     * This function renders the checkbox column for each row in the table.
      *
      * @since   1.0.0
-     * @param   array|object $item
-     * @return  string
+     * @param   array|object    $item   The item (row) being rendered.
+     * @return  string                  The rendered checkbox input.
      */
-    public function column_cb( $item )
+    public function column_cb( $item ) : string
     {
         $meta   = $item->usermeta;
         $key1   = $meta[ "_dsm_secret"     ];
@@ -349,13 +381,15 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
-     * Username column
+     * Username column.
+     *
+     * This function renders the "Username" column in the table.
      *
      * @since   1.0.0
-     * @param   array|object $item
-     * @return  string
+     * @param   array|object    $item   The item (row) being rendered.
+     * @return  string                  The rendered output for the "Username" column.
      */
-    public function column_username( $item )
+    public function column_username( $item ) : string
     {
         $actions         = [];
         $actions[ "id" ] = "ID: {$item->ID}";
@@ -382,23 +416,27 @@ class DSM_Users_table extends \WP_List_Table
     /**
      * Name column
      *
+     * This function renders the "Name" column in the table.
+     *
      * @since   1.0.0
-     * @param   array|object $item
-     * @return  string
+     * @param   array|object    $item   The item (row) being rendered.
+     * @return  string                  The rendered output for the "Name" column.
      */
-    public function column_name( $item )
+    public function column_name( $item ) : string
     {
         return "{$item->user_firstname} {$item->user_lastname}";
     }
 
     /**
-     * SKU Prefix column
+     * SKU Prefix column.
+     *
+     * This function renders the "SKU Prefix" column in the table.
      *
      * @since   1.0.0
-     * @param   array|object $item
-     * @return  string
+     * @param   array|object    $item   The item (row) being rendered.
+     * @return  string                  The rendered output for the "SKU Prefix" column.
      */
-    public function column_prefix( $item )
+    public function column_prefix( $item ) : string
     {
         $meta   = $item->usermeta;
         $prefix = $meta[ "_dsm_sku_prefix" ];
@@ -410,25 +448,29 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
-     * Email column
+     * Email column.
+     *
+     * This function renders the "Email" column in the table.
      *
      * @since   1.0.0
-     * @param   array|object $item
-     * @return  string
+     * @param   array|object    $item   The item (row) being rendered.
+     * @return  string                  The rendered output for the "Email" column.
      */
-    public function column_email( $item )
+    public function column_email( $item ) : string
     {
         return $item->user_email;
     }
 
     /**
-     * Products column
+     * Products column.
+     *
+     * This function renders the "Products" column in the table.
      *
      * @since   1.0.0
-     * @param   array|object $item
-     * @return  string
+     * @param   array|object    $item   The item (row) being rendered.
+     * @return  string                  The rendered output for the "Products" column.
      */
-    public function column_products( $item )
+    public function column_products( $item ) : string
     {
         $link = $item->qty_products;
 
@@ -442,13 +484,15 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
-     * Orders column
+     * Orders column.
+     *
+     * This function renders the "Orders" column in the table.
      *
      * @since   1.0.0
-     * @param   array|object $item
-     * @return  string
+     * @param   array|object    $item   The item (row) being rendered.
+     * @return  string                  The rendered output for the "Orders" column.
      */
-    public function column_orders( $item )
+    public function column_orders( $item ) : string
     {
         $link = $item->qty_orders;
 
@@ -462,13 +506,15 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
-     * Keys column
+     * Keys column.
+     *
+     * This function renders the "Keys" column in the table.
      *
      * @since   1.0.0
-     * @param   array|object $item
-     * @return  string
+     * @param   array|object    $item   The item (row) being rendered.
+     * @return  string                  The rendered output for the "Keys" column.
      */
-    public function column_keys( $item )
+    public function column_keys( $item ) : string
     {
         $meta = $item->usermeta;
 
@@ -495,12 +541,16 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
-     * Extra infos on top or bottom of the table
+     * Extra infos on top or bottom of the table.
+     *
+     * This function is responsible for displaying extra information on the top or bottom of the table.
+     * It currently includes a template file called "message.php" from the "templates/notices/" directory.
      *
      * @since   1.0.0
+     * @param   string  $which  Indicates whether the extra information should be displayed on the top or bottom of the table.
      * @return  void
      */
-    public function extra_tablenav( $which )
+    public function extra_tablenav( $which ) : void
     {
         // if ( $which == "top"    )
         // if ( $which == "bottom" )
@@ -509,13 +559,15 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
-     * Show preview product of supplier
+     * Show preview product of supplier.
+     *
+     * This function redirects the user to the preview page for a specific supplier.
      *
      * @since   1.0.0
-     * @param   int $uid
+     * @param   int     $uid    The user ID of the supplier.
      * @return  void
      */
-    public function process_b_a_preview( $uid )
+    public function process_b_a_preview( $uid ) : void
     {
         $url = admin_url( "admin.php?page=woo_ds_shopkeeper&tab=preview&uid={$uid}" );
         wp_redirect( $url );
@@ -523,14 +575,16 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
-     * Sync, preview or import products
+     * Sync, preview or import products.
+     *
+     * This function handles the synchronization, preview, or import of products for the specified suppliers.
      *
      * @since   1.0.0
-     * @param   array   $users
-     * @param   string  $action
+     * @param   array   $users      An array of user IDs (suppliers) to process.
+     * @param   string  $action     The action to perform ("sync", "preview", or "import").
      * @return  void
      */
-    private function process_b_a_products( $users, $action )
+    private function process_b_a_products( $users, $action ) : void
     {
         if ( !empty( $users ) )
         {
@@ -706,23 +760,31 @@ class DSM_Users_table extends \WP_List_Table
             $error   = max( array_column( $errors, "errors"   ) ) == 0;
 
             if ( $warning && $error )
-                return DSM_Helper::redirect( "success", $errors );
-
+            {
+                DSM_Helper::redirect( "success", $errors );
+                return;
+            }
             else if ( !$warning )
-                return DSM_Helper::redirect( "warning", $errors );
+            {
+                DSM_Helper::redirect( "warning", $errors );
+                return;
+            }
 
-            return DSM_Helper::redirect( "error", $errors );
+            DSM_Helper::redirect( "error", $errors );
+            return;
         }
     }
 
     /**
-     * Delete products of supplier
+     * Delete products of supplier.
+     *
+     * This function deletes the products associated with the specified suppliers.
      *
      * @since   1.0.0
-     * @param   array   $users
+     * @param   array   $users  An array of user IDs (suppliers) to process.
      * @return  void
      */
-    public function process_b_a_del_products( $users )
+    public function process_b_a_del_products( $users ) : void
     {
         if ( !empty( $users ) && !empty( $this->products ) )
         {
@@ -759,11 +821,13 @@ class DSM_Users_table extends \WP_List_Table
     /**
      * Delete products and the supplier.
      *
+     * This function handles the deletion of products and the associated supplier.
+     *
      * @since   1.0.0
-     * @param   array   $users
+     * @param   array   $users   An array of user IDs (suppliers) to process
      * @return  void
      */
-    public function process_b_a_del_users( $users )
+    public function process_b_a_del_users( $users ) : void
     {
         $this->process_b_a_del_products( $users );
 
@@ -783,16 +847,18 @@ class DSM_Users_table extends \WP_List_Table
     }
 
     /**
-     * Inform supplier about imported products
+     * Inform supplier about imported products.
+     *
+     * This function prepares and sends a notification to the supplier about the imported products.
      *
      * @since   1.0.0
-     * @param   int     $user_id
-     * @param   array   $skus
-     * @param   array   $args
-     * @param   string  $url
+     * @param   int     $user_id    The user ID of the supplier
+     * @param   array   $skus       An array of imported product SKUs
+     * @param   array   $args       An array of API request arguments (headers, etc.)
+     * @param   string  $url        The base URL of the supplier's API endpoint
      * @return  void
      */
-    private function prepare_to_send_imported_products( int $user_id, array $skus, array $args, string $url )
+    private function prepare_to_send_imported_products( int $user_id, array $skus, array $args, string $url ) : void
     {
         $url = "{$url}/imported";
 
