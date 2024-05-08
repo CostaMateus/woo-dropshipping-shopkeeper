@@ -149,8 +149,11 @@ class DSM_Products_table extends \WP_List_Table
         $order   = ( !empty( $_GET[ "order"   ] ) ) ? $_GET[ "order"   ] : "desc";
         $orderby = ( !empty( $_GET[ "orderby" ] ) ) ? $_GET[ "orderby" ] : "date";
 
-        if ( $_GET[ "orderby" ] === "name" ) $orderby = "get_name";
-        if ( $_GET[ "orderby" ] === "sku"  ) $orderby = "get_sku";
+        if ( isset( $_GET[ "orderby" ] ) )
+        {
+            if ( $_GET[ "orderby" ] === "name" ) $orderby = "get_name";
+            if ( $_GET[ "orderby" ] === "sku"  ) $orderby = "get_sku";
+        }
 
         if ( $orderby == "date" )
         {
