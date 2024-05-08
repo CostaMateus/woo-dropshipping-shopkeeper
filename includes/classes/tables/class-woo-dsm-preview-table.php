@@ -111,7 +111,7 @@ class DSM_Preview_table extends \WP_List_Table
         if ( empty( $this->_email ) || !is_email( $this->_email ) )
             $this->_email = get_bloginfo( "admin_email" );
 
-        $this->_args     = [
+        $this->_req_args = [
             "timeout"   => 60,
             "sslverify" => false,
             "headers"   => [
@@ -480,7 +480,7 @@ class DSM_Preview_table extends \WP_List_Table
         $url      = "{$this->_url}/wp-json/dsm/v1/products";
 
         // Get supplier products
-        $response = wp_remote_get( $url, $this->_args );
+        $response = wp_remote_get( $url, $this->_req_args );
 
         if ( is_wp_error( $response ) )
         {
@@ -621,6 +621,6 @@ class DSM_Preview_table extends \WP_List_Table
     {
         $url = "{$this->_url}/wp-json/dsm/v1/products/imported";
 
-        DSM_Helper::send_imported_products( $this->supplier->ID, $skus, $this->_args, $url );
+        DSM_Helper::send_imported_products( $this->supplier->ID, $skus, $this->_req_args, $url );
     }
 }
