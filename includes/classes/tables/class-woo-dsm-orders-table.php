@@ -63,47 +63,42 @@ class DSM_Orders_table extends \WP_List_Table
      */
     private function load_orders() : void
     {
-        $this->orders = wc_get_orders( [
+        $orders       = wc_get_orders( [
             "limit" => -1,
             "type"  => "shop_order",
         ] );
 
-        foreach ( $this->orders as $key => &$order )
+        $this->orders = array_filter( $orders, function ( $order )
         {
-            $txt   = "";
-            $ids   = [];
-            $unset = false;
+            $ids    = [];
 
             foreach ( $order->get_items() as $item )
             {
                 $product     = $item->get_product();
-                $supplier_id = $product->get_meta( "_dsm_supplier", true );
 
-                if ( !$supplier_id )
+                if ( !$product     ) continue;
+
+                $supplier_id = $product->get_meta( "_dsm_supplier" );
+
+                if ( !$supplier_id ) continue;
+
+                $ids[ $supplier_id ] = ( $ids[ $supplier_id ] ?? 0 ) + 1;
+            }
+
+            $mapped = array_map(
+                function ( $user_id, $count )
                 {
-                    $unset = true;
-                    continue;
-                }
+                    $user = $this->users[ $user_id ] ?? null;
+                    return $user ? "{$user->user_login} ({$count})" : null;
+                },
+                array_keys( $ids ),
+                array_values( $ids )
+            );
 
-                if ( !isset( $ids[ $supplier_id ] ) )
-                    $ids[ $supplier_id ] = 1;
-                else
-                    $ids[ $supplier_id ]++;
-            }
+            $order->suppliers = implode( "<br>", $mapped );
 
-            if ( $unset ) unset( $this->orders[ $key ] );
-
-            foreach ( $this->users as $user )
-            {
-                if ( !isset( $ids[ $user->ID ] ) ) continue;
-
-                $txt .= "{$user->user_login} ({$ids[ $user->ID ]})";
-
-                if ( count( $ids ) > 1 ) $txt .= "<br>";
-            }
-
-            $order->suppliers = $txt;
-        }
+            return !empty( $ids );
+        } );
     }
 
     /**
