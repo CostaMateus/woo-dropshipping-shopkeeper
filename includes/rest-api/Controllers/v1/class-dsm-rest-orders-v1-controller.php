@@ -9,8 +9,6 @@
  * @version 	1.0.0
  */
 
-use Dropshipping_Shopkeeper\Classes\Helpers\DSM_Helper;
-
 class DSM_REST_Orders_V1_Controller extends DSM_REST_Main_Controller
 {
 	/**
@@ -27,7 +25,7 @@ class DSM_REST_Orders_V1_Controller extends DSM_REST_Main_Controller
 	 * @since   1.0.0
 	 * @return  void
 	 */
-	public function register_routes()
+	public function register_routes() : void
 	{
 		register_rest_route(
 			$this->namespace,
@@ -49,7 +47,7 @@ class DSM_REST_Orders_V1_Controller extends DSM_REST_Main_Controller
 	 * @param  	WP_REST_Request 	$request Full details about the request.
 	 * @return 	WP_Error|WP_REST_Response
 	 */
-	public function update_item( $request )
+	public function update_item( $request ) : mixed
 	{
 		$checkAuth  = $this->checkAuth( $request );
 

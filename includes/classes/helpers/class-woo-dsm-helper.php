@@ -340,6 +340,7 @@ class DSM_Helper
      *
      * This function updates the metadata of a product with the provided metadata array.
      *
+	 * @since 	1.0.0
      * @param   int     $product_id     The product ID.
      * @param   array   $metadata       The array of metadata.
      * @return  void
@@ -446,6 +447,7 @@ class DSM_Helper
      * This function creates a new product in WooCommerce based on the provided product data, prefix, and user ID.
      * It translates the product data, creates the product using the WooCommerce API, and creates variations if the product is variable.
      *
+	 * @since 	1.0.0
      * @param   array   $product    The product data array.
      * @param   string  $prefix     The prefix for the product SKU.
      * @param   int     $user_id    The supplier user ID.

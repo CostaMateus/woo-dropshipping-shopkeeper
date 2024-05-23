@@ -198,7 +198,7 @@ class DSM_Users_table extends \WP_List_Table
      * @param   object  $b
      * @return  int|bool|null
      */
-    public function usort_reorder( $a, $b )
+    public function usort_reorder( $a, $b ) : mixed
     {
         $orderby = "username";
 

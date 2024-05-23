@@ -32,7 +32,7 @@ class DSM_Tags
      * @since   1.0.0
      * @return  void
      */
-    public function init_metabox()
+    public function init_metabox() : void
     {
         add_action( "add_meta_boxes",     [ $this, "add_metabox"      ]        );
         add_action( "save_post",          [ $this, "save_metabox"     ], 10, 2 );
@@ -45,7 +45,7 @@ class DSM_Tags
      * @since   1.0.0
      * @return  void
      */
-    public function add_metabox()
+    public function add_metabox() : void
     {
         add_meta_box(
             "dsm-tags-suppliers",
@@ -61,9 +61,10 @@ class DSM_Tags
      * Renders the meta box
      *
      * @since   1.0.0
+     * @param   mixed   $post
      * @return  void
      */
-    public function render_metabox( $post )
+    public function render_metabox( $post ) : void
     {
 		global $theorder;
 
@@ -146,7 +147,7 @@ class DSM_Tags
      * @param   WP_Post $post
      * @return  void
      */
-    public function save_metabox( $post_id, $post )
+    public function save_metabox( $post_id, $post ) : void
     {
         // Security check
         if ( !$this->check_nonce( $post_id ) ) return;
@@ -205,7 +206,7 @@ class DSM_Tags
      * @since   1.0.0
      * @return  void
      */
-    public function add_form_enctype()
+    public function add_form_enctype() : void
     {
         echo " enctype='multipart/form-data'";
     }
@@ -217,7 +218,7 @@ class DSM_Tags
      * @param   int     $post_id
      * @return  bool
      */
-    private function check_nonce( $post_id )
+    private function check_nonce( $post_id ) : bool
     {
         // Add nonce for security and authentication.
         $nonce_name   = isset( $_POST[ "dsm_tag_nonce" ] ) ? $_POST[ "dsm_tag_nonce" ] : "";
@@ -285,9 +286,7 @@ class DSM_Tags
 
         $url      = "{$url}/wp-json/dsm/v1/tags";
 
-        /**
-         * Post tag to supplier
-         */
+        // Post tag to supplier
         $response = wp_remote_post( $url, $args );
 
         if ( is_wp_error( $response ) )

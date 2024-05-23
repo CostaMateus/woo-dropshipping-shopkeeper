@@ -23,14 +23,17 @@ class Server
 	/**
 	 * REST API namespaces and endpoints.
 	 *
-	 * @var array
+	 * @var 	array
 	 */
 	protected $controllers = [];
 
 	/**
 	 * Hook into WordPress ready to init the REST API as needed.
+	 *
+	 * @since 	1.0.0
+	 * @return  void
 	 */
-	public function init()
+	public function init() : void
     {
 		require_once( dirname( __FILE__ ) . "/Controllers/v1/class-dsm-rest-main-controller.php"        );
 
@@ -42,8 +45,11 @@ class Server
 
 	/**
 	 * Register REST API routes.
+	 *
+	 * @since 	1.0.0
+	 * @return 	void
 	 */
-	public function register_rest_routes()
+	public function register_rest_routes() : void
     {
 		foreach ( $this->get_rest_namespaces() as $namespace => $controllers )
         {
@@ -58,9 +64,10 @@ class Server
 	/**
 	 * Get API namespaces - new namespaces should be registered here.
 	 *
-	 * @return array List of Namespaces and Main controller classes.
+	 * @since 	1.0.0
+	 * @return 	array 	List of Namespaces and Main controller classes.
 	 */
-	protected function get_rest_namespaces()
+	protected function get_rest_namespaces() : array
     {
 		return apply_filters(
 			"woo_ds_supplier_rest_api_get_rest_namespaces",
@@ -73,22 +80,24 @@ class Server
 	/**
 	 * List of controllers in the wc/v1 namespace.
 	 *
-	 * @return array
+	 * @since 	1.0.0
+	 * @return 	array
 	 */
-	protected function get_v1_controllers()
+	protected function get_v1_controllers() : array
     {
 		return [
 			"orders"   => "DSM_REST_Orders_V1_Controller",
-			"products" => "\DSM_REST_Products_V1_Controller",
+			"products" => "DSM_REST_Products_V1_Controller",
         ];
 	}
 
 	/**
 	 * Return the path to the package.
 	 *
-	 * @return string
+	 * @since 	1.0.0
+	 * @return 	string
 	 */
-	public static function get_path()
+	public static function get_path() : string
     {
 		return dirname( __DIR__ );
 	}

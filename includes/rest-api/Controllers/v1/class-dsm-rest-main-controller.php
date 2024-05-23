@@ -24,9 +24,9 @@ class DSM_REST_Main_Controller extends \WP_REST_Controller
 	 *
 	 * @since 	1.0.0
 	 * @param  	WP_REST_Request 	$request Full details about the request.
-	 * @return 	WP_Error|boolean
+	 * @return 	WP_Error|bool
 	 */
-	public function permissions_check( $request )
+	public function permissions_check( $request ) : mixed
 	{
 		$checkAuth = $this->checkAuth( $request );
 
@@ -46,7 +46,7 @@ class DSM_REST_Main_Controller extends \WP_REST_Controller
 	 * @param  	WP_REST_Request 	$request Full details about the request.
 	 * @return 	array
 	 */
-	public function checkAuth( $request )
+	public function checkAuth( $request ) : array
 	{
 		$email     = $request->get_header( "_dsm_email"      );
 		$supp      = $request->get_header( "_dsm_supplier"   );

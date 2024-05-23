@@ -27,70 +27,8 @@ class DSM_REST_Products_V1_Controller extends DSM_REST_Main_Controller
 	 * @since   1.0.0
 	 * @return  void
 	 */
-	public function register_routes()
+	public function register_routes() : void
 	{
-		// register_rest_route( $this->namespace, "/" . $this->rest_base, array(
-		// 	array(
-		// 		"methods"             => WP_REST_Server::READABLE,
-		// 		"callback"            => array( $this, "get_items" ),
-		// 		"permission_callback" => array( $this, "get_items_permissions_check" ),
-		// 		"args"                => $this->get_collection_params(),
-		// 	),
-		// 	array(
-		// 		"methods"             => WP_REST_Server::CREATABLE,
-		// 		"callback"            => array( $this, "create_item" ),
-		// 		"permission_callback" => array( $this, "create_item_permissions_check" ),
-		// 		"args"                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
-		// 	),
-		// 	"schema" => array( $this, "get_public_item_schema" ),
-		// ) );
-
-		// register_rest_route( $this->namespace, "/" . $this->rest_base . "/(?P<id>[\d]+)", array(
-		// 	"args" => array(
-		// 		"id" => array(
-		// 			"description" => __( "Unique identifier for the resource.", "woocommerce" ),
-		// 			"type"        => "integer",
-		// 		),
-		// 	),
-		// 	array(
-		// 		"methods"             => WP_REST_Server::READABLE,
-		// 		"callback"            => array( $this, "get_item" ),
-		// 		"permission_callback" => array( $this, "get_item_permissions_check" ),
-		// 		"args"                => array(
-		// 			"context" => $this->get_context_param( array( "default" => "view" ) ),
-		// 		),
-		// 	),
-		// 	array(
-		// 		"methods"             => WP_REST_Server::EDITABLE,
-		// 		"callback"            => array( $this, "update_item" ),
-		// 		"permission_callback" => array( $this, "update_item_permissions_check" ),
-		// 		"args"                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
-		// 	),
-		// 	array(
-		// 		"methods"             => WP_REST_Server::DELETABLE,
-		// 		"callback"            => array( $this, "delete_item" ),
-		// 		"permission_callback" => array( $this, "delete_item_permissions_check" ),
-		// 		"args"                => array(
-		// 			"force" => array(
-		// 				"default"     => false,
-		// 				"type"        => "boolean",
-		// 				"description" => __( "Whether to bypass trash and force deletion.", "woocommerce" ),
-		// 			),
-		// 		),
-		// 	),
-		// 	"schema" => array( $this, "get_public_item_schema" ),
-		// ) );
-
-		// register_rest_route( $this->namespace, "/" . $this->rest_base . "/batch", array(
-		// 	array(
-		// 		"methods"             => WP_REST_Server::EDITABLE,
-		// 		"callback"            => array( $this, "batch_items" ),
-		// 		"permission_callback" => array( $this, "batch_items_permissions_check" ),
-		// 		"args"                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
-		// 	),
-		// 	"schema" => array( $this, "get_public_batch_schema" ),
-		// ) );
-
 		register_rest_route(
 			$this->namespace,
 			"/{$this->rest_base}/update",
@@ -111,7 +49,7 @@ class DSM_REST_Products_V1_Controller extends DSM_REST_Main_Controller
 	 * @param  	WP_REST_Request 	$request Full details about the request.
 	 * @return 	WP_Error|WP_REST_Response
 	 */
-	public function update_item( $request )
+	public function update_item( $request ) : mixed
 	{
 		$checkAuth  = $this->checkAuth( $request );
 
@@ -145,15 +83,11 @@ class DSM_REST_Products_V1_Controller extends DSM_REST_Main_Controller
 
 		$product    = wc_get_product( $product_id );
 
-		/**
-		 * Check if stock quantity has changed
-		 */
+		// Check if stock quantity has changed
 		if ( $data[ "stock_quantity" ] != $product->get_stock_quantity() )
 			$product->set_stock_quantity( $data[ "stock_quantity" ] );
 
-		/**
-		 * Check if stock status has changed
-		 */
+		// Check if stock status has changed
 		if ( $data[ "stock_status" ] != $product->get_stock_status() )
 		{
 			$product->set_stock_status( $data[ "stock_status" ] );
@@ -162,9 +96,7 @@ class DSM_REST_Products_V1_Controller extends DSM_REST_Main_Controller
 				$product->set_status( "draft" );
 		}
 
-		/**
-		 * Check if stock is manageable
-		 */
+		// Check if stock is manageable
 		if ( $data[ "managed" ] != $product->get_manage_stock() )
 			$product->set_manage_stock( $data[ "managed" ] );
 
@@ -176,9 +108,7 @@ class DSM_REST_Products_V1_Controller extends DSM_REST_Main_Controller
 		$sale       = $product->get_meta( "_dsm_supplier_sale_price"     );
 		$newSale    = $data[ "sale_price"    ];
 
-		/**
-		 * Process regular and sale price
-		 */
+		// Process regular and sale price
 		DSM_Helper::process_regular_price( $regular, $newRegular, $sttRegular, $product );
 		DSM_Helper::process_sale_price( $regular, $sale, $newSale, $sttSale, $product );
 

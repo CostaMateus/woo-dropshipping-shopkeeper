@@ -35,10 +35,10 @@ class DSM_Orders
      * Send order to suppliers
      *
      * @since   1.0.0
-     * @param   int  $order_id
+     * @param   int     $order_id
      * @return  void
      */
-    public function send_order_to_suppliers( $order_id )
+    public function send_order_to_suppliers( $order_id ) : void
     {
 		$order       = wc_get_order( $order_id );
         $products    = [];
@@ -130,9 +130,7 @@ class DSM_Orders
 
             $url      = "{$url}/wp-json/dsm/v1/orders";
 
-            /**
-             * Post order to supplier
-             */
+            // Post order to supplier
             $response = wp_remote_post( $url, $args );
 
             if ( is_wp_error( $response ) )
@@ -177,7 +175,7 @@ class DSM_Orders
      * @param   string  $error
      * @return  void
      */
-    public function save_error( &$order, $products, $user, $error = null )
+    public function save_error( &$order, $products, $user, $error = null ) : void
     {
         $last = array_key_last( $products );
         $skus = "";
@@ -207,10 +205,10 @@ class DSM_Orders
 	 * Add option to bulk actions on shop order page, to change status to 'shipped'
 	 *
 	 * @since 	1.0.0
-	 * @param 	array 	$actions
-	 * @return 	array
+	 * @param   array   $actions
+	 * @return  array
 	 */
-	public function add_bulk_actions_shop_order( $actions )
+	public function add_bulk_actions_shop_order( $actions ) : array
 	{
 		$new_actions = [];
 
@@ -229,10 +227,10 @@ class DSM_Orders
 	 * Add 'shipped' status after 'on-hold' status.
 	 *
 	 * @since 	1.0.0
-     * @param   array $order_statuses
-	 * @return 	void
+     * @param   array   $order_statuses
+	 * @return  array
 	 */
-    public function add_shipped_to_order_statuses( $order_statuses )
+    public function add_shipped_to_order_statuses( $order_statuses ) : array
     {
         $new_order_statuses = [];
 
@@ -251,10 +249,10 @@ class DSM_Orders
 	 * Adds 'Shopkeeper' column header to 'All Orders' page immediately after 'Status' column.
 	 *
 	 * @since 	1.0.0
-	 * @param 	array 	$columns
-	 * @return 	array	$new_columns
+	 * @param   array   $columns
+	 * @return  array   $new_columns
 	 */
-	public function add_column_title_shopkeeper( $columns )
+	public function add_column_title_shopkeeper( $columns ) : array
 	{
 		$new_columns = [];
 
@@ -279,9 +277,9 @@ class DSM_Orders
 	 * @param 	mixed 	$val
 	 * @param 	string 	$column
 	 * @param 	string 	$order_id
-	 * @return 	mixed 	$val
+	 * @return  mixed   $val
 	 */
-	public function add_column_content_shopkeeper( $column, $order_id )
+	public function add_column_content_shopkeeper( $column, $order_id ) : mixed
 	{
         $columns = [
             \Dropshipping_Shopkeeper::DOMAIN . "_supplier",
@@ -350,10 +348,10 @@ class DSM_Orders
 	 * Add custom action to order box.
 	 *
      * @since   1.0.0
-	 * @param 	array $actions
+	 * @param 	array   $actions
      * @return  array
 	 */
-	public function add_order_box_action( $actions )
+	public function add_order_box_action( $actions ) : array
 	{
 		global $theorder;
 
@@ -388,7 +386,7 @@ class DSM_Orders
      * @since   1.0.0
      * @return  void
 	 */
-	public function process_order_box_action( $order )
+	public function process_order_box_action( $order ) : void
 	{
         $this->send_order_to_suppliers( $order->get_id() );
 	}

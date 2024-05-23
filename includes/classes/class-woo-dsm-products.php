@@ -15,7 +15,7 @@ class DSM_Products
      * Constructor
      *
      * @since   1.0.0
-     * @return  void
+     * @return 	void
      */
     public function __construct()
     {
@@ -28,9 +28,9 @@ class DSM_Products
 	 *
 	 * @since 	1.0.0
 	 * @param 	array 	$columns
-	 * @return 	array	$new_columns
+	 * @return 	array 	$new_columns
 	 */
-	public function add_column_title_supplier( $columns )
+	public function add_column_title_supplier( $columns ) : array
 	{
 		$new_columns = [];
 
@@ -54,7 +54,7 @@ class DSM_Products
 	 * @param 	string 	$product_id
 	 * @return 	mixed 	$val
 	 */
-	public function add_column_content_supplier( $column, $product_id )
+	public function add_column_content_supplier( $column, $product_id ) : mixed
 	{
 		if ( $column === \Dropshipping_Shopkeeper::DOMAIN . "_supplier" )
 		{

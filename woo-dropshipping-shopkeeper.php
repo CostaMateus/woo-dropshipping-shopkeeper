@@ -98,7 +98,7 @@ class Dropshipping_Shopkeeper
 	 * @param 	bool 	$is_error
 	 * @return 	void
 	 */
-	public static function log( string $type, string $message, bool $is_error = false )
+	public static function log( string $type, string $message, bool $is_error = false ) : void
 	{
 		$debug = get_option( "_dsm_debug" );
 		$log   = new WC_Logger( [ self::DOMAIN ] );
@@ -113,7 +113,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @return 	object A single instance of this class.
 	 */
-	public static function init()
+	public static function init() : object
     {
 		if ( self::$instance === null ) self::$instance = new self;
 
@@ -124,9 +124,9 @@ class Dropshipping_Shopkeeper
      * On activation, change all orders with status 'processing' and meta '_woo_ds_supplier_status_shipped' to status 'shipped'.
      *
      * @since 	1.0.0
-     * @return  void
+     * @return 	void
      */
-    public static function on_activation()
+    public static function on_activation() : void
     {
         if ( !current_user_can( "activate_plugins" ) ) return;
 
@@ -156,9 +156,9 @@ class Dropshipping_Shopkeeper
      * On deactivation, change all orders with status 'shipped' to 'processing'.
      *
      * @since 	1.0.0
-     * @return  void
+     * @return 	void
      */
-    public static function on_deactivation()
+    public static function on_deactivation() : void
     {
         if ( !current_user_can( "activate_plugins" ) ) return;
 
@@ -193,7 +193,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @return 	void
 	 */
-	public static function missing_notice_woo()
+	public static function missing_notice_woo() : void
 	{
 		require_once( dirname( self::FILE ) . "/templates/notices/missing-woo.php" );
 	}
@@ -204,7 +204,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @return 	void
 	 */
-	public static function missing_notice_ecfb()
+	public static function missing_notice_ecfb() : void
 	{
 		require_once( dirname( self::FILE ) . "/templates/notices/missing-ecfb.php" );
 	}
@@ -215,7 +215,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.1.0
 	 * @return 	void
 	 */
-	public function setup_hpos_compatibility()
+	public function setup_hpos_compatibility() : void
 	{
 		if ( defined( "WC_VERSION" ) && version_compare( WC_VERSION, "7.1", "<" ) )
 			return;
@@ -236,7 +236,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @return 	void
 	 */
-	public function add_requires()
+	public function add_requires() : void
 	{
 		if ( !class_exists( "WP_List_Table" ) )
 			require_once( ABSPATH . "wp-admin/includes/class-wp-list-table.php" );
@@ -255,7 +255,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @return 	void
 	 */
-    public function add_actions()
+    public function add_actions() : void
     {
 		add_action( "init",                        [ $this, "load_rest_api"             ]     );
         add_action( "init",                        [ $this, "add_custom_order_status"   ]     );
@@ -272,7 +272,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @return 	void
 	 */
-    public function add_filters()
+    public function add_filters() : void
     {
 		add_filter( "plugin_action_links_" . plugin_basename( self::FILE ), [ $this, "plugin_action_links" ]        );
 		add_filter( "http_request_args",                                    [ $this, "accept_unsafe_urls"  ], 90, 2 );
@@ -284,7 +284,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @return 	void
 	 */
-	public function add_classes()
+	public function add_classes() : void
 	{
 		require_once( dirname( self::FILE ) . "/includes/classes/helpers/class-woo-dsm-helper.php"        );
 
@@ -305,7 +305,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @return 	void
 	 */
-	public function load_rest_api()
+	public function load_rest_api() : void
 	{
 		\Dropshipping_Shopkeeper\RestApi\Server::instance()->init();
 	}
@@ -316,7 +316,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @return 	void
 	 */
-    public static function add_custom_order_status()
+    public static function add_custom_order_status() : void
     {
 		register_post_status( "wc-shipped", [
 			"label"                     => _x( "Shipped", "Order status", "woo_ds_shopkeeper" ),
@@ -334,7 +334,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @return 	void
 	 */
-    public static function add_role()
+    public static function add_role() : void
     {
         add_role(
             "supplier",
@@ -349,7 +349,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @return 	void
 	 */
-	public static function remove_role_from_users()
+	public static function remove_role_from_users() : void
 	{
 		$args  = [
 			"role"  => "supplier",
@@ -367,7 +367,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @return 	void
 	 */
-	public static function add_hash_cost()
+	public static function add_hash_cost() : void
 	{
 		$t = 0.25; // 250 milliseconds
 		$c = 8;
@@ -390,7 +390,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @return 	void
 	 */
-	public static function remove_hash()
+	public static function remove_hash() : void
 	{
 		delete_option( "_dsm_hash_cost" );
 	}
@@ -401,7 +401,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @return 	void
 	 */
-	public static function remove_users_meta()
+	public static function remove_users_meta() : void
 	{
 		delete_metadata( "user", 0, "_dsm_url",        "", true );
 		delete_metadata( "user", 0, "_dsm_debug",      "", true );
@@ -416,7 +416,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @return 	void
 	 */
-	public static function remove_options()
+	public static function remove_options() : void
 	{
 		delete_option( "_dsm_email_general"      );
 		delete_option( "_dsm_categories_general" );
@@ -429,7 +429,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @return 	void
      */
-    public function add_admin_style_script()
+    public function add_admin_style_script() : void
     {
 		$suffix   = defined( "SCRIPT_DEBUG" ) && SCRIPT_DEBUG ? "" : ".min";
 		$css_path = "assets/css/style{$suffix}.css";
@@ -459,10 +459,10 @@ class Dropshipping_Shopkeeper
 	 * Action links.
 	 *
 	 * @since 	1.0.0
-	 * @param 	array $links
+	 * @param 	array 	$links
 	 * @return 	array
 	 */
-	public static function plugin_action_links( $links )
+	public static function plugin_action_links( $links ) : array
     {
         $url            = esc_url( admin_url( "admin.php?page=" . "woo_ds_shopkeeper" ) );
         $text           = __( "Settings", "woo_ds_shopkeeper" );
@@ -478,7 +478,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @return 	void
 	 */
-	public function add_admin_menu()
+	public function add_admin_menu() : void
 	{
 		add_menu_page(
 			"Dropshipping Shopkeeper Module",
@@ -497,7 +497,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @return 	void
 	 */
-	public function display_admin_menu()
+	public function display_admin_menu() : void
 	{
 		if ( !current_user_can( "manage_options" ) ) wp_die( __( "You do not have sufficient permissions to access this page." ) );
 
@@ -547,7 +547,7 @@ class Dropshipping_Shopkeeper
 	 * @param 	array 	$data
 	 * @return 	void
 	 */
-	public function admin_settings_messages( $type, $data )
+	public function admin_settings_messages( $type, $data ) : void
 	{
 		foreach ( $data as $user_id => $user_data )
 		{
@@ -625,7 +625,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @return 	void
 	 */
-	public static function save_general_tab_settings()
+	public static function save_general_tab_settings() : void
 	{
         if ( isset( $_POST[ "_wpnonce" ] ) && !empty( $_POST[ "_wpnonce" ] ) )
         {
@@ -635,23 +635,17 @@ class Dropshipping_Shopkeeper
 				wp_die( "Nope! Security check failed!" );
         }
 
-		/**
-		 * Update DSM email general
-		 */
+		// Update DSM email general
 		if ( isset( $_POST[ "dsm_email_general" ] ) && !empty( $_POST[ "dsm_email_general" ] ) )
 			update_option( "_dsm_email_general", $_POST[ "dsm_email_general" ] );
 
-		/**
-		 * Update DSM categories general
-		 */
+		// Update DSM categories general
 		if ( isset( $_POST[ "dsm_categories_general" ] ) && $_POST[ "dsm_categories_general" ] === "on" )
 			update_option( "_dsm_categories_general", true );
 		elseif ( !isset( $_POST[ "dsm_categories_general" ] ) )
 			update_option( "_dsm_categories_general", false );
 
-		/**
-		 * Update DSM debug general
-		 */
+		// Update DSM debug general
 		if ( isset( $_POST[ "dsm_debug_general" ] ) && $_POST[ "dsm_debug_general" ] === "on" )
 			update_option( "_dsm_debug", true );
 		elseif ( !isset( $_POST[ "dsm_debug_general" ] ) )
@@ -676,7 +670,7 @@ class Dropshipping_Shopkeeper
 	 * @param 	string 	$url
 	 * @return 	array
 	 */
-	public function accept_unsafe_urls( $args, $url )
+	public function accept_unsafe_urls( $args, $url ) : array
 	{
 		$args[ "reject_unsafe_urls" ] = false;
 

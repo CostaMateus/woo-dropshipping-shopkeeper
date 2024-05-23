@@ -144,7 +144,7 @@ class DSM_Products_table extends \WP_List_Table
      * @param   object $b
      * @return  int|bool|null
      */
-    public function usort_reorder( $a, $b )
+    public function usort_reorder( $a, $b ) : mixed
     {
         $order   = ( !empty( $_GET[ "order"   ] ) ) ? $_GET[ "order"   ] : "desc";
         $orderby = "date";
@@ -599,11 +599,8 @@ class DSM_Products_table extends \WP_List_Table
      */
     public function extra_tablenav( $which ) : void
     {
-        // if ( $which == "top" )
-        //     echo"Hello, I'm before the table";
-
+        // if ( $which == "top"    )
         // if ( $which == "bottom" )
-        //     echo"Hi, I'm after the table";
     }
 
     /**
@@ -614,7 +611,7 @@ class DSM_Products_table extends \WP_List_Table
      * @since   1.0.0
      * @return  void
      */
-    public function filter_products()
+    public function filter_products() : void
     {
         if ( isset( $_GET[ "supplier" ] ) )
         {

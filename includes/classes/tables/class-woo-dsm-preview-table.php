@@ -130,6 +130,12 @@ class DSM_Preview_table extends \WP_List_Table
         ];
     }
 
+    /**
+     * Get user login
+     *
+     * @since   1.0.0
+     * @return  string
+     */
     public function get_user_login() : string
     {
         return $this->supplier->user_login;
@@ -177,7 +183,7 @@ class DSM_Preview_table extends \WP_List_Table
      * @param   object $b
      * @return  int|bool|null
      */
-    public function usort_reorder( $a, $b )
+    public function usort_reorder( $a, $b ) : mixed
     {
         $order   = ( !empty( $_GET[ "order"   ] ) ) ? $_GET[ "order"   ] : "desc";
         $orderby = "date";
@@ -468,11 +474,8 @@ class DSM_Preview_table extends \WP_List_Table
      */
     public function extra_tablenav( $which ) : void
     {
-        // if ( $which == "top" )
-        //     echo"Hello, I'm before the table";
-
+        // if ( $which == "top"    )
         // if ( $which == "bottom" )
-        //     echo"Hi, I'm after the table";
     }
 
     /**
