@@ -19,8 +19,8 @@ class DSM_Products
      */
     public function __construct()
     {
-		add_filter( "manage_edit-product_columns",        [ $this, "add_column_title_supplier"   ]        );
-		add_filter( "manage_product_posts_custom_column", [ $this, "add_column_content_supplier" ], 10, 3 );
+		add_filter( "manage_edit-product_columns",        [ $this, "add_column_title_supplier"   ], 10, 1 );
+		add_filter( "manage_product_posts_custom_column", [ $this, "add_column_content_supplier" ], 10, 2 );
     }
 
 	/**
@@ -28,7 +28,7 @@ class DSM_Products
 	 *
 	 * @since 	1.0.0
 	 * @param 	array 	$columns
-	 * @return 	array 	$new_columns
+	 * @return 	array
 	 */
 	public function add_column_title_supplier( $columns ) : array
 	{
@@ -52,9 +52,9 @@ class DSM_Products
 	 * @param 	mixed 	$val
 	 * @param 	string 	$column
 	 * @param 	string 	$product_id
-	 * @return 	mixed 	$val
+	 * @return 	void
 	 */
-	public function add_column_content_supplier( $column, $product_id ) : mixed
+	public function add_column_content_supplier( $val, $column, $product_id ) : void
 	{
 		if ( $column === \Dropshipping_Shopkeeper::DOMAIN . "_supplier" )
 		{

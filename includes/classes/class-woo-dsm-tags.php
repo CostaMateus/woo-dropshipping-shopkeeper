@@ -21,8 +21,8 @@ class DSM_Tags
     {
         if ( is_admin() )
         {
-            add_action( "load-post.php",     [ $this, "init_metabox" ] );
-            add_action( "load-post-new.php", [ $this, "init_metabox" ] );
+            add_action( "load-post.php",     [ $this, "init_metabox" ], 10, 0 );
+            add_action( "load-post-new.php", [ $this, "init_metabox" ], 10, 0 );
         }
     }
 
@@ -34,9 +34,9 @@ class DSM_Tags
      */
     public function init_metabox() : void
     {
-        add_action( "add_meta_boxes",     [ $this, "add_metabox"      ]        );
+        add_action( "add_meta_boxes",     [ $this, "add_metabox"      ], 10, 0 );
         add_action( "save_post",          [ $this, "save_metabox"     ], 10, 2 );
-        add_action( "post_edit_form_tag", [ $this, "add_form_enctype" ]        );
+        add_action( "post_edit_form_tag", [ $this, "add_form_enctype" ], 10, 0 );
     }
 
     /**

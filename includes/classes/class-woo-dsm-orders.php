@@ -19,16 +19,17 @@ class DSM_Orders
      */
     public function __construct()
     {
-        add_action( "woocommerce_thankyou",                      [ $this, "send_order_to_suppliers"       ], 1     );
+        // woocommerce_thankyou
+        add_action( "woocommerce_checkout_order_processed",      [ $this, "send_order_to_suppliers"       ], 20, 3 );
 
 		add_filter( "bulk_actions-edit-shop_order",              [ $this, "add_bulk_actions_shop_order"   ], 20, 1 );
-        add_filter( "wc_order_statuses",                         [ $this, "add_shipped_to_order_statuses" ]        );
-		add_filter( "manage_edit-shop_order_columns",            [ $this, "add_column_title_shopkeeper"   ]        );
+        add_filter( "wc_order_statuses",                         [ $this, "add_shipped_to_order_statuses" ], 10, 1 );
+		add_filter( "manage_edit-shop_order_columns",            [ $this, "add_column_title_shopkeeper"   ], 10, 1 );
 		add_filter( "manage_shop_order_posts_custom_column",     [ $this, "add_column_content_shopkeeper" ], 10, 3 );
 
         // Order Box Actions
-        add_action( "woocommerce_order_actions",                 [ $this, "add_order_box_action"          ]        );
-        add_action( "woocommerce_order_action_dsm_order_action", [ $this, "process_order_box_action"      ]        );
+        add_action( "woocommerce_order_actions",                 [ $this, "add_order_box_action"          ], 10, 1 );
+        add_action( "woocommerce_order_action_dsm_order_action", [ $this, "process_order_box_action"      ], 10, 1 );
     }
 
     /**
@@ -36,11 +37,14 @@ class DSM_Orders
      *
      * @since   1.0.0
      * @param   int     $order_id
+     * @param   array   $posted_data
+     * @param   object  $order
      * @return  void
      */
-    public function send_order_to_suppliers( $order_id ) : void
+    public function send_order_to_suppliers( $order_id, $posted_data, $order ) : void
     {
-		$order       = wc_get_order( $order_id );
+		// $order       = wc_get_order( $order_id );
+
         $products    = [];
         $customer_ip = $order->get_customer_ip_address();
         $billing     = [
@@ -250,7 +254,7 @@ class DSM_Orders
 	 *
 	 * @since 	1.0.0
 	 * @param   array   $columns
-	 * @return  array   $new_columns
+	 * @return  array
 	 */
 	public function add_column_title_shopkeeper( $columns ) : array
 	{
@@ -277,9 +281,9 @@ class DSM_Orders
 	 * @param 	mixed 	$val
 	 * @param 	string 	$column
 	 * @param 	string 	$order_id
-	 * @return  mixed   $val
+	 * @return  void
 	 */
-	public function add_column_content_shopkeeper( $column, $order_id ) : mixed
+	public function add_column_content_shopkeeper( $val, $column, $order_id ) : void
 	{
         $columns = [
             \Dropshipping_Shopkeeper::DOMAIN . "_supplier",
@@ -384,11 +388,12 @@ class DSM_Orders
 	 * Process custom action order box.
 	 *
      * @since   1.0.0
+     * @param   object  $order
      * @return  void
 	 */
 	public function process_order_box_action( $order ) : void
 	{
-        $this->send_order_to_suppliers( $order->get_id() );
+        $this->send_order_to_suppliers( $order->get_id(), [], $order );
 	}
 }
 

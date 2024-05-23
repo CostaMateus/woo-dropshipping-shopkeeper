@@ -19,15 +19,15 @@ class DSM_Users
      */
     public function __construct()
     {
-		add_action( "show_user_profile",          [ $this, "extra_profile_fields"      ], 12    );
-		add_action( "edit_user_profile",          [ $this, "extra_profile_fields"      ], 12    );
+		add_action( "show_user_profile",          [ $this, "extra_profile_fields"      ], 12, 1 );
+		add_action( "edit_user_profile",          [ $this, "extra_profile_fields"      ], 12, 1 );
 
-		add_action( "personal_options_update",    [ $this, "save_extra_profile_fields" ]        );
-		add_action( "edit_user_profile_update",   [ $this, "save_extra_profile_fields" ]        );
+		add_action( "personal_options_update",    [ $this, "save_extra_profile_fields" ], 10, 1 );
+		add_action( "edit_user_profile_update",   [ $this, "save_extra_profile_fields" ], 10, 1 );
 
-		add_action( "wp_ajax_generate_secret",    [ $this, "generate_secret"           ]        );
+		add_action( "wp_ajax_generate_secret",    [ $this, "generate_secret"           ], 10, 0 );
 
-		add_filter( "manage_users_columns",       [ $this, "add_column_title_user"     ]        );
+		add_filter( "manage_users_columns",       [ $this, "add_column_title_user"     ], 10, 1 );
 		add_filter( "manage_users_custom_column", [ $this, "add_column_content_user"   ], 10, 3 );
     }
 
@@ -125,7 +125,7 @@ class DSM_Users
 	 *
 	 * @since 	1.0.0
 	 * @param 	array 	$columns
-	 * @return 	array 	$new_columns
+	 * @return 	array
 	 */
 	public function add_column_title_user( $columns ) : array
 	{
