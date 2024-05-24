@@ -19,8 +19,7 @@ class DSM_Orders
      */
     public function __construct()
     {
-        // woocommerce_thankyou
-        add_action( "woocommerce_checkout_order_processed",      [ $this, "send_order_to_suppliers"       ], 20, 3 );
+        add_action( "woocommerce_thankyou",                      [ $this, "send_order_to_suppliers"       ], 20, 1 );
 
 		add_filter( "bulk_actions-edit-shop_order",              [ $this, "add_bulk_actions_shop_order"   ], 20, 1 );
         add_filter( "wc_order_statuses",                         [ $this, "add_shipped_to_order_statuses" ], 10, 1 );
@@ -37,16 +36,14 @@ class DSM_Orders
      *
      * @since   1.0.0
      * @param   int     $order_id
-     * @param   array   $posted_data
-     * @param   object  $order
      * @return  void
      */
-    public function send_order_to_suppliers( $order_id, $posted_data, $order ) : void
+    public function send_order_to_suppliers( $order_id ) : void
     {
-		// $order       = wc_get_order( $order_id );
-
+		$order       = wc_get_order( $order_id );
         $products    = [];
         $customer_ip = $order->get_customer_ip_address();
+
         $billing     = [
             "first_name" => $order->get_billing_first_name(),
             "last_name"  => $order->get_billing_last_name(),
@@ -60,6 +57,7 @@ class DSM_Orders
             "email"      => $order->get_billing_email(),
             "phone"      => $order->get_billing_phone(),
         ];
+
         $shipping    = [
             "first_name" => $order->get_shipping_first_name(),
             "last_name"  => $order->get_shipping_last_name(),
@@ -393,8 +391,6 @@ class DSM_Orders
 	 */
 	public function process_order_box_action( $order ) : void
 	{
-        $this->send_order_to_suppliers( $order->get_id(), [], $order );
+        $this->send_order_to_suppliers( $order->get_id() );
 	}
 }
-
-new DSM_Orders();

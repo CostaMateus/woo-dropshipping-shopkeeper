@@ -88,7 +88,17 @@ class DSM_Orders_table extends \WP_List_Table
             $mapped = array_map(
                 function ( $user_id, $count )
                 {
-                    $user = $this->users[ $user_id ] ?? null;
+                    $user = null;
+
+                    foreach ( $this->users as $u )
+                    {
+                        if ( $u->data->ID == $user_id )
+                        {
+                            $user = $u;
+                            break;
+                        }
+                    }
+
                     return $user ? "{$user->user_login} ({$count})" : null;
                 },
                 array_keys( $ids ),
@@ -207,13 +217,13 @@ class DSM_Orders_table extends \WP_List_Table
      * @since   1.0.0
      * @return  array
      */
-    public function get_bulk_actions() : array
+    public function get_bulk_actions() : void
     {
-        $actions = [
-            "upd_shipped" =>  __( "Set status shipped", "woo_ds_supplier" )
-        ];
+        // $actions = [
+        //     "upd_shipped" =>  __( "Set status shipped", "woo_ds_supplier" )
+        // ];
 
-        return $actions;
+        // return $actions;
     }
 
     /**
@@ -235,7 +245,7 @@ class DSM_Orders_table extends \WP_List_Table
      */
     public function prepare_items() : void
     {
-        $this->process_bulk_action();
+        // $this->process_bulk_action();
 
         $hidden                = [];
         $columns               = $this->get_columns();
@@ -281,25 +291,25 @@ class DSM_Orders_table extends \WP_List_Table
      */
     public function process_bulk_action() : void
     {
-        if ( isset( $_POST[ "_wpnonce" ] ) && !empty( $_POST[ "_wpnonce" ] ) )
-        {
-            $nonce  = htmlspecialchars( $_POST[ "_wpnonce" ] );
-            $action = "bulk-" . $this->_args[ "plural" ];
+        // if ( isset( $_POST[ "_wpnonce" ] ) && !empty( $_POST[ "_wpnonce" ] ) )
+        // {
+        //     $nonce  = htmlspecialchars( $_POST[ "_wpnonce" ] );
+        //     $action = "bulk-" . $this->_args[ "plural" ];
 
-            if ( !wp_verify_nonce( $nonce, $action ) ) wp_die( "Nope! Security check failed!" );
-        }
+        //     if ( !wp_verify_nonce( $nonce, $action ) ) wp_die( "Nope! Security check failed!" );
+        // }
 
-        $action  = $this->current_action();
-        $actions = array_keys( $this->get_bulk_actions() );
+        // $action  = $this->current_action();
+        // $actions = array_keys( $this->get_bulk_actions() );
 
-        if ( !in_array( $action, $actions ) ) return;
+        // if ( !in_array( $action, $actions ) ) return;
 
-        switch ( $action )
-        {
-            case "upd_shipped":
-                $this->process_b_a_upd_status( $_POST[ "orders" ] );
-            break;
-        }
+        // switch ( $action )
+        // {
+        //     case "upd_shipped":
+        //         $this->process_b_a_upd_status( $_POST[ "orders" ] );
+        //     break;
+        // }
     }
 
     /**
@@ -327,9 +337,9 @@ class DSM_Orders_table extends \WP_List_Table
      * @param   array|object $item
      * @return  string
      */
-    public function column_cb( $item ) : string
+    public function column_cb( $item ) : void
     {
-        return sprintf( "<input type='checkbox' name='orders[]' value='%s' />", $item->ID );
+        // return sprintf( "<input type='checkbox' name='orders[]' value='%s' />", $item->ID );
     }
 
     /**

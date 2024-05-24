@@ -49,12 +49,11 @@ class DSM_Products
 	 * Adds 'Supplier' column content to 'All Products' page immediately after 'Categories' column.
 	 *
 	 * @since 	1.0.0
-	 * @param 	mixed 	$val
 	 * @param 	string 	$column
 	 * @param 	string 	$product_id
 	 * @return 	void
 	 */
-	public function add_column_content_supplier( $val, $column, $product_id ) : void
+	public function add_column_content_supplier( $column, $product_id ) : void
 	{
 		if ( $column === \Dropshipping_Shopkeeper::DOMAIN . "_supplier" )
 		{
@@ -70,5 +69,3 @@ class DSM_Products
 		}
 	}
 }
-
-new DSM_Products();

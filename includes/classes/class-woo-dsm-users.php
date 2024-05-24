@@ -191,5 +191,3 @@ class DSM_Users
 		return $val;
 	}
 }
-
-new DSM_Users();

@@ -302,5 +302,3 @@ class DSM_Tags
         return $data;
     }
 }
-
-new DSM_Tags();

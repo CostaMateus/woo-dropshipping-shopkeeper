@@ -4,7 +4,7 @@
  * Description:          Dropshipping Shopkeeper Module for WooCommerce.
  * Author:               Mateus Costa
  * Author URI:           https://costamateus.com.br/
- * Version:              1.1.0
+ * Version:              1.0.0
  * Text Domain:          woo_ds_shopkeeper
  * Requires at least:    6.4
  * Requires PHP:         7.4
@@ -12,7 +12,7 @@
  * WC tested up to:      8.2
  *
  * @package 			 Dropshipping_Shopkeeper
- * @version 			 1.1.0
+ * @version 			 1.0.0
  */
 
 defined( "ABSPATH" ) || exit;
@@ -47,6 +47,14 @@ class Dropshipping_Shopkeeper
 	 * @var 	string
 	 */
 	const FILE    = __FILE__;
+
+	/**
+	 * Plugin dir.
+	 *
+	 * @since 	1.0.0
+	 * @var 	string
+	 */
+	const DIR     = __DIR__;
 
 	/**
 	 * Instance of this class.
@@ -93,18 +101,18 @@ class Dropshipping_Shopkeeper
 	 * Log
 	 *
 	 * @since 	1.0.0
-	 * @param 	string 	$type
+	 * @param 	string 	$level
 	 * @param 	string 	$message
 	 * @param 	bool 	$is_error
 	 * @return 	void
 	 */
-	public static function log( string $type, string $message, bool $is_error = false ) : void
+	public static function log( string $level, string $message, bool $is_error = false ) : void
 	{
-		$debug = get_option( "_dsm_debug" );
-		$log   = new WC_Logger( [ self::DOMAIN ] );
+		$logger  = wc_get_logger();
+		$context = [ "source" => self::DOMAIN ];
 
-		if ( $debug || $is_error )
-			$log->$type( $message );
+		if ( $is_error || get_option( "_dsm_debug" ) )
+			$logger->$level( $message, $context );
 	}
 
 	/**
@@ -195,7 +203,7 @@ class Dropshipping_Shopkeeper
 	 */
 	public static function missing_notice_woo() : void
 	{
-		require_once( dirname( self::FILE ) . "/templates/notices/missing-woo.php" );
+		require_once( self::DIR . "/templates/notices/missing-woo.php" );
 	}
 
 	/**
@@ -206,7 +214,7 @@ class Dropshipping_Shopkeeper
 	 */
 	public static function missing_notice_ecfb() : void
 	{
-		require_once( dirname( self::FILE ) . "/templates/notices/missing-ecfb.php" );
+		require_once( self::DIR . "/templates/notices/missing-ecfb.php" );
 	}
 
 	/**
@@ -242,11 +250,11 @@ class Dropshipping_Shopkeeper
 			require_once( ABSPATH . "wp-admin/includes/class-wp-list-table.php" );
 
 		add_action( "admin_footer", function () {
-			require_once( dirname( self::FILE ) . "/templates/load.php" );
+			require_once( self::DIR . "/templates/load.php" );
 		} );
 
-		require_once( dirname( self::FILE ) . "/includes/rest-api/Utilities/SingletonTrait.php" );
-		require_once( dirname( self::FILE ) . "/includes/rest-api/Server.php" );
+		require_once( self::DIR . "/includes/rest-api/Utilities/SingletonTrait.php" );
+		require_once( self::DIR . "/includes/rest-api/Server.php"                   );
 	}
 
 	/**
@@ -286,17 +294,22 @@ class Dropshipping_Shopkeeper
 	 */
 	public function add_classes() : void
 	{
-		require_once( dirname( self::FILE ) . "/includes/classes/helpers/class-woo-dsm-helper.php"        );
+		require_once( self::DIR . "/includes/classes/helpers/class-woo-dsm-helper.php"        );
 
-		require_once( dirname( self::FILE ) . "/includes/classes/tables/class-woo-dsm-orders-table.php"   );
-		require_once( dirname( self::FILE ) . "/includes/classes/tables/class-woo-dsm-preview-table.php"  );
-		require_once( dirname( self::FILE ) . "/includes/classes/tables/class-woo-dsm-products-table.php" );
-		require_once( dirname( self::FILE ) . "/includes/classes/tables/class-woo-dsm-users-table.php"    );
+		require_once( self::DIR . "/includes/classes/tables/class-woo-dsm-orders-table.php"   );
+		require_once( self::DIR . "/includes/classes/tables/class-woo-dsm-preview-table.php"  );
+		require_once( self::DIR . "/includes/classes/tables/class-woo-dsm-products-table.php" );
+		require_once( self::DIR . "/includes/classes/tables/class-woo-dsm-users-table.php"    );
 
-		require_once( dirname( self::FILE ) . "/includes/classes/class-woo-dsm-orders.php"                );
-		require_once( dirname( self::FILE ) . "/includes/classes/class-woo-dsm-products.php"              );
-		require_once( dirname( self::FILE ) . "/includes/classes/class-woo-dsm-tags.php"                  );
-		require_once( dirname( self::FILE ) . "/includes/classes/class-woo-dsm-users.php"                 );
+		require_once( self::DIR . "/includes/classes/class-woo-dsm-orders.php"                );
+		require_once( self::DIR . "/includes/classes/class-woo-dsm-products.php"              );
+		require_once( self::DIR . "/includes/classes/class-woo-dsm-tags.php"                  );
+		require_once( self::DIR . "/includes/classes/class-woo-dsm-users.php"                 );
+
+		new Dropshipping_Shopkeeper\Classes\DSM_Orders();
+		new Dropshipping_Shopkeeper\Classes\DSM_Products();
+		new Dropshipping_Shopkeeper\Classes\DSM_Tags();
+		new Dropshipping_Shopkeeper\Classes\DSM_Users();
 	}
 
 	/**
@@ -536,7 +549,7 @@ class Dropshipping_Shopkeeper
 			do_action( "admin_notices", "success", $_GET[ "data" ] );
 		}
 
-		require_once( dirname( self::FILE ) . "/templates/admin/settings.php" );
+		require_once( self::DIR . "/templates/admin/settings.php" );
 	}
 
 	/**
