@@ -252,9 +252,9 @@ class DSM_Tags
     private function send_tag_to_supplier( $supplier_id, $path, $order_id, $order )
     {
         $user     = get_user_by( "id", $supplier_id );
-        $url      = get_user_meta( $user->ID, "_dsm_url"     ,   true );
-        $secret   = get_user_meta( $user->ID, "_dsm_secret"  ,   true );
-        $secret_s = get_user_meta( $user->ID, "_dsm_secret_s",   true );
+        $url      = get_user_meta( $user->ID, "_dsm_url",      true );
+        $secret   = get_user_meta( $user->ID, "_dsm_secret",   true );
+        $secret_s = get_user_meta( $user->ID, "_dsm_secret_s", true );
 
         if ( !$url || !$secret || !$secret_s )
         {
@@ -264,7 +264,7 @@ class DSM_Tags
             ];
         }
 
-        $email    = get_option( "_dsm_email_general", true );
+        $email    = get_option( "_dsm_email_general" );
         $email    = ( !empty( $email ) && is_email( $email ) ) ? $email : get_bloginfo( "admin_email" );
 
         $args     = [

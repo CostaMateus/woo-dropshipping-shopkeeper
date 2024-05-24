@@ -624,7 +624,7 @@ class DSM_Users_table extends \WP_List_Table
                     continue;
                 }
 
-                $email    = get_option( "_dsm_email_general", true );
+                $email    = get_option( "_dsm_email_general" );
                 $email    = ( !empty( $email ) && is_email( $email ) ) ? $email : get_bloginfo( "admin_email" );
 
                 $args     = [
