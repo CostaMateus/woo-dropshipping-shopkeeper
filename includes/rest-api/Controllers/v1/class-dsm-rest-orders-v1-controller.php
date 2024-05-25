@@ -89,7 +89,7 @@ class DSM_REST_Orders_V1_Controller extends DSM_REST_Main_Controller
 				$msg = [
 					"ORDER SHIPPED",
 					"Supplier: {$user->user_login} ({$user->ID})",
-					"Tracking code: {$data[ 'tracking_code' ]}"
+					// "Tracking code: {$data[ 'tracking_code' ]}"
 				];
 
 				$order->add_order_note( implode( "\n", $msg ) );
