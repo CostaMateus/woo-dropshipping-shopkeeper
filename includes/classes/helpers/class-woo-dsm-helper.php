@@ -136,12 +136,8 @@ class DSM_Helper
             {
                 unset( $variation[ "attributes" ][ $key ] );
 
-                $new_key = explode( "attribute_", $key     )[ 1 ];
-                $new_key = explode( "pa_",        $new_key );
-                $new_key = ( count( $new_key ) > 1 ) ? $new_key[ 1 ] : $new_key[ 0 ];
-
                 $variation[ "attributes" ][] = [
-                    "name"   => ucfirst( strtolower( $new_key   ) ),
+                    "name"   => ucfirst( strtolower( $key       ) ),
                     "option" => ucfirst( strtolower( $attribute ) )
                 ];
             }
@@ -485,28 +481,138 @@ class DSM_Helper
         // Process the product metadata.
         self::process_product_metadata( $product_response[ "id" ], $t_product[ "meta_data" ] );
 
-        // Log the product response.
-        \Dropshipping_Shopkeeper::log( "info", print_r( $product_response, true ) );
-
         // If the product is a variable product, create variations.
         if ( $product[ "type" ] == "variable" )
         {
-            $product_id         = $product_response[ "id"     ];
-            $images             = $product_response[ "images" ];
-            $sku                = $t_product[ "sku" ];
-            $t_variations       = self::translate_variations( $t_product[ "variations" ], $images, $sku, $prefix, $product_id );
+            self::create_all_product_variations( $product_response[ "id" ] );
 
-            // Create a new WP_REST_Request for creating variations.
-            $variation_request  = new \WP_REST_Request( "POST", "/wc/v3/products/{$product_id}/variations/batch" );
-            $variation_request->set_body_params( [ "create" => $t_variations ] );
+            $product       = wc_get_product( $product_response[ "id" ] );
+            $variations_id = $product->get_children();
 
-            // Send the request to create variations.
-            $variation_response = rest_do_request( $variation_request )->get_data();
+            foreach ( $variations_id as $variation_id )
+            {
+                $variation  = wc_get_product( $variation_id );
 
-            // Log the variation response.
-            \Dropshipping_Shopkeeper::log( "info", print_r( $variation_response, true ) );
+                $attributes = $variation->get_attributes();
+
+                $has_change = false;
+
+                foreach ( $t_product[ "variations" ] as $t_variation )
+                {
+                    $aux_attrs = array_combine(
+                        array_map(
+                            function ( $key ) { return str_replace( "attribute_", "", $key ); },
+                            array_keys( $t_variation[ "attributes" ] )
+                        ),
+                        array_values( $t_variation[ "attributes" ] )
+                    );
+
+                    $all_equal = count( array_intersect_assoc( $attributes, $aux_attrs ) ) === count( $attributes );
+
+                    if ( $all_equal )
+                    {
+                        if ( $variation->get_sku() != $t_variation[ "sku" ] )
+                        {
+                            $variation->set_sku( $prefix . $t_variation[ "sku" ] );
+                            $variation->update_meta_data( "_dsm_supplier_sku", $t_variation[ "sku" ] );
+                        }
+
+                        $variation->update_meta_data( "_dsm_supplier", $user_id );
+
+                        $variation->set_regular_price( ( string ) $t_variation[ "display_price" ] );
+                        $variation->set_stock_quantity( $t_variation[ "max_qty" ] );
+                        $variation->set_weight( $t_variation[ "weight"     ]             );
+                        $variation->set_length( $t_variation[ "dimensions" ][ "length" ] );
+                        $variation->set_width(  $t_variation[ "dimensions" ][ "width"  ] );
+                        $variation->set_height( $t_variation[ "dimensions" ][ "height" ] );
+
+                        $images   = $product_response[ "images" ];
+                        $index    = array_search( $t_variation[ "image" ][ "title" ], array_column( $images, "name" ) );
+
+                        $image_id = ( $index !== false )
+                                    ? $images[ $index ][ "id" ]
+                                    : self::upload_file_by_url( $t_variation[ "image" ][ "url" ], $variation_id );
+
+                        if ( $image_id ) $variation->set_image_id( $image_id );
+
+                        $has_change = true;
+                        break;
+                    }
+                }
+
+                if ( $has_change ) $variation->save();
+            }
         }
 
         return true;
+    }
+
+	/**
+	 * Create all product variations from existing attributes.
+	 *
+	 * @param   int   $product_id   Product ID.
+	 * @return  void
+	 */
+	private static function create_all_product_variations( $product_id ) : void
+    {
+		$product    = wc_get_product( $product_id );
+
+		$data_store = $product->get_data_store();
+
+		if ( !is_callable( [ $data_store, "create_all_product_variations" ] ) )
+			wp_die();
+
+		$data_store->create_all_product_variations( $product );
+		$data_store->sort_all_product_variations( $product->get_id() );
+	}
+
+    /**
+     * Upload image from URL
+     *
+     * @param   string  $image_url
+     * @param   int     $post_id
+     * @return  mixed
+     */
+    private static function upload_file_by_url( $image_url, $post_id ) : mixed
+    {
+        require_once( ABSPATH . "wp-admin/includes/file.php" );
+
+        $temp_file     = download_url( $image_url );
+
+        if ( is_wp_error( $temp_file ) ) return null;
+
+        $file          = [
+            "name"     => basename( $image_url ),
+            "type"     => mime_content_type( $temp_file ),
+            "tmp_name" => $temp_file,
+            "size"     => filesize( $temp_file ),
+        ];
+
+        $sideload      = wp_handle_sideload( $file, [ "test_form" => false ] );
+
+        if ( !empty( $sideload[ "error" ] ) ) return null;
+
+        $attachment_id = wp_insert_attachment(
+            [
+                "guid"           => $sideload[ "url"  ],
+                "post_mime_type" => $sideload[ "type" ],
+                "post_title"     => basename( $sideload[ "file" ] ),
+                "post_content"   => "",
+                "post_status"    => "inherit",
+            ],
+            $sideload[ "file" ],
+            $post_id
+        );
+
+        if ( is_wp_error( $attachment_id ) || !$attachment_id )
+            return null;
+
+        require_once( ABSPATH . "wp-admin/includes/image.php" );
+
+        $attachment_metadata = wp_generate_attachment_metadata( $attachment_id, $sideload[ "file" ] );
+
+        wp_update_attachment_metadata( $attachment_id, $attachment_metadata );
+
+        return $attachment_id;
     }
 }
