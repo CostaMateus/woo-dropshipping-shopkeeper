@@ -19,7 +19,7 @@ class DSM_Orders
      */
     public function __construct()
     {
-        add_action( "woocommerce_thankyou",                      [ $this, "send_order_to_suppliers"       ], 20, 1 );
+        add_action( "woocommerce_checkout_order_processed",      [ $this, "send_order_to_suppliers"       ], 20, 3 );
 
 		add_filter( "bulk_actions-edit-shop_order",              [ $this, "add_bulk_actions_shop_order"   ], 20, 1 );
         add_filter( "wc_order_statuses",                         [ $this, "add_shipped_to_order_statuses" ], 10, 1 );
@@ -36,11 +36,12 @@ class DSM_Orders
      *
      * @since   1.0.0
      * @param   int     $order_id
+     * @param   array   $posted_data
+     * @param   object  $order
      * @return  void
      */
-    public function send_order_to_suppliers( $order_id ) : void
+    public function send_order_to_suppliers( $order_id, $posted_data, $order ) : void
     {
-		$order       = wc_get_order( $order_id );
         $products    = [];
         $customer_ip = $order->get_customer_ip_address();
 
@@ -73,15 +74,15 @@ class DSM_Orders
         foreach ( $order->get_items() as $item )
         {
             $product     = $item->get_product();
-            $supplier_id = $product->get_meta( "_dsm_supplier",     true );
-            $sku         = $product->get_meta( "_dsm_supplier_sku", true );
+            $supplier_id = $product->get_meta( "_dsm_supplier"     );
+            $sku         = $product->get_meta( "_dsm_supplier_sku" );
 
             if ( !$supplier_id ) continue;
 
             $products[ $supplier_id ][ $sku ] = [
                 "quantity" => $item->get_quantity(),
-                "sale"     => $product->get_meta( "_dsm_supplier_sale_price",    true ),
-                "regular"  => $product->get_meta( "_dsm_supplier_regular_price", true ),
+                "sale"     => $product->get_meta( "_dsm_supplier_sale_price"    ),
+                "regular"  => $product->get_meta( "_dsm_supplier_regular_price" ),
                 "sku"      => $product->get_sku(),
             ];
         }
@@ -97,9 +98,9 @@ class DSM_Orders
             if ( $sent ) continue;
 
             $user     = get_user_by( "id", $supplier_id );
-            $url      = get_user_meta( $user->ID, "_dsm_url"     ,   true );
-            $secret   = get_user_meta( $user->ID, "_dsm_secret"  ,   true );
-            $secret_s = get_user_meta( $user->ID, "_dsm_secret_s",   true );
+            $url      = get_user_meta( $user->ID, "_dsm_url",      true );
+            $secret   = get_user_meta( $user->ID, "_dsm_secret",   true );
+            $secret_s = get_user_meta( $user->ID, "_dsm_secret_s", true );
 
             if ( !$url || !$secret || !$secret_s )
             {
@@ -107,7 +108,7 @@ class DSM_Orders
                 continue;
             }
 
-            $email    = get_option( "_dsm_email_general", true );
+            $email    = get_option( "_dsm_email_general" );
             $email    = ( !empty( $email ) && is_email( $email ) ) ? $email : get_bloginfo( "admin_email" );
 
             $args     = [
@@ -391,6 +392,6 @@ class DSM_Orders
 	 */
 	public function process_order_box_action( $order ) : void
 	{
-        $this->send_order_to_suppliers( $order->get_id() );
+        $this->send_order_to_suppliers( $order->get_id(), [], $order );
 	}
 }
