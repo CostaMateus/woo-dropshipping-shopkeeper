@@ -209,6 +209,8 @@ class DSM_Orders_table extends \WP_List_Table
                     return $tb - $ta;
             }
         }
+
+        return null;
     }
 
     /**
@@ -453,15 +455,27 @@ class DSM_Orders_table extends \WP_List_Table
      */
     public function filter_orders() : void
     {
-        if ( isset( $_GET[ "shopkeeper" ] ) )
+        if ( isset( $_GET[ "supplier" ] ) )
         {
-            $orders = [];
+            $this->orders = array_filter( $this->orders, function ( $order )
+            {
+                $ids    = [];
 
-            foreach ( $this->orders as $order )
-                if ( $_GET[ "supplier" ] == $order->get_meta( "_dsm_shopkeeper" ) )
-                    $orders[] = $order;
+                foreach ( $order->get_items() as $item )
+                {
+                    $product     = $item->get_product();
 
-            $this->orders = $orders;
+                    if ( !$product     ) continue;
+
+                    $supplier_id = $product->get_meta( "_dsm_supplier" );
+
+                    if ( !$supplier_id ) continue;
+
+                    $ids[ $supplier_id ] = ( $ids[ $supplier_id ] ?? 0 ) + 1;
+                }
+
+                return !empty( $ids );
+            } );
         }
     }
 

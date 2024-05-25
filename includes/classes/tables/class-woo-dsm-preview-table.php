@@ -226,6 +226,8 @@ class DSM_Preview_table extends \WP_List_Table
             if ( $result !== 0 )
                 return ( $order === "asc" ) ? $result : -$result;
         }
+
+        return null;
     }
 
     /**
