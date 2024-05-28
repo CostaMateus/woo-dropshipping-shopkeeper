@@ -711,9 +711,9 @@ class DSM_Users_table extends \WP_List_Table
                         $change_r       = DSM_Helper::process_regular_price( $regular, $new_regular, $status_regular, $product );
 
                         // Process sale price
-                        $change_s        = DSM_Helper::process_sale_price( $regular, $sale, $new_sale, $status_sale, $product );
+                        $change_s       = DSM_Helper::process_sale_price( $regular, $sale, $new_sale, $status_sale, $product );
 
-                        $change          = ( $change_r || $change_s ) ? true : false;
+                        $change         = ( $change_r || $change_s ) ? true : false;
 
                         // Check if stock status has changed
                         if ( $aux_product[ "stock_status" ] != $product->get_stock_status() )
