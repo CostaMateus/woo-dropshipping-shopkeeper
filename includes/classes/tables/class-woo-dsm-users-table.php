@@ -128,13 +128,17 @@ class DSM_Users_table extends \WP_List_Table
             {
                 foreach ( $order->get_items() as $item )
                 {
-                    $product     = $item->get_product();
-                    $supplier_id = $product->get_meta( "_dsm_supplier", true );
+                    $product = $item->get_product();
 
-                    if ( !empty( $supplier_id ) && $supplier_id == $user->ID )
+                    if ( $product )
                     {
-                        $order_count++;
-                        break;
+                        $supplier_id = $product->get_meta( "_dsm_supplier", true );
+
+                        if ( !empty( $supplier_id ) && $supplier_id == $user->ID )
+                        {
+                            $order_count++;
+                            break;
+                        }
                     }
                 }
             }
@@ -692,24 +696,24 @@ class DSM_Users_table extends \WP_List_Table
                     // Check if is for sync
                     if ( $product_id && $action == "sync" )
                     {
-                        $change     = false;
-                        $product    = wc_get_product( $prd_id );
+                        $change         = false;
+                        $product        = wc_get_product( $product_id );
 
-                        $sttRegular = $product->get_meta( "_dsm_supplier_status_regular" );
-                        $regular    = $product->get_meta( "_dsm_supplier_regular_price"  );
-                        $newRegular = $aux_product[ "regular_price" ];
+                        $status_regular = $product->get_meta( "_dsm_supplier_status_regular" );
+                        $regular        = $product->get_meta( "_dsm_supplier_regular_price"  );
+                        $new_regular    = $aux_product[ "regular_price" ];
 
-                        $sttSale    = $product->get_meta( "_dsm_supplier_status_sale"    );
-                        $sale       = $product->get_meta( "_dsm_supplier_sale_price"     );
-                        $newSale    = $aux_product[ "sale_price"    ];
+                        $status_sale    = $product->get_meta( "_dsm_supplier_status_sale"    );
+                        $sale           = $product->get_meta( "_dsm_supplier_sale_price"     );
+                        $new_sale       = $aux_product[ "sale_price"    ];
 
                         // Process regular price
-                        $change_r   = DSM_Helper::process_regular_price( $regular, $newRegular, $sttRegular, $product );
+                        $change_r       = DSM_Helper::process_regular_price( $regular, $new_regular, $status_regular, $product );
 
                         // Process sale price
-                        $change_s   = DSM_Helper::process_sale_price( $regular, $sale, $newSale, $sttSale, $product );
+                        $change_s        = DSM_Helper::process_sale_price( $regular, $sale, $new_sale, $status_sale, $product );
 
-                        $change     = ( $change_r || $change_s ) ? true : false;
+                        $change          = ( $change_r || $change_s ) ? true : false;
 
                         // Check if stock status has changed
                         if ( $aux_product[ "stock_status" ] != $product->get_stock_status() )
