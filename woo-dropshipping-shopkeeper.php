@@ -30,7 +30,7 @@ class Dropshipping_Shopkeeper
 	 * @since 	1.0.0
 	 * @var 	string
 	 */
-	const VERSION = "1.1.0";
+	const VERSION = "1.0.0";
 
 	/**
 	 * Plugin domain.
@@ -220,7 +220,7 @@ class Dropshipping_Shopkeeper
 	/**
 	 * Setup WooCommerce HPOS compatibility.
 	 *
-	 * @since 	1.1.0
+	 * @since 	1.0.0
 	 * @return 	void
 	 */
 	public function setup_hpos_compatibility() : void
