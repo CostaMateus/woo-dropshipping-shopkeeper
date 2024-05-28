@@ -522,10 +522,8 @@ class DSM_Helper
                         $variation->set_regular_price( ( string ) $t_variation[ "display_regular_price" ] );
                         $variation->set_sale_price( ( string ) $t_variation[ "display_price" ] );
 
-                        $variation->set_manage_stock( is_int( $t_variation[ "max_qty" ] ) );
-
-                        if ( is_int( $t_variation[ "max_qty" ] ) )
-                            $variation->set_stock_quantity( $t_variation[ "max_qty" ] );
+                        $variation->set_manage_stock( $t_variation[ "manage_stock" ] );
+                        $variation->set_stock_quantity( $t_variation[ "max_qty" ] );
 
                         $variation->set_weight( $t_variation[ "weight"     ]             );
                         $variation->set_length( $t_variation[ "dimensions" ][ "length" ] );
