@@ -446,10 +446,7 @@ class DSM_Preview_table extends \WP_List_Table
      */
     public function column_price( $item ) : string
     {
-        $r = wc_price( $item->regular_price );
-        $s = wc_price( $item->sale_price    );
-
-        return ( $item->sale_price ) ? "{$s} <del>{$r}</del>" : $r;
+        return $item->price_html;
     }
 
     /**
